@@ -11,11 +11,6 @@ module RobotOnRails
     attr_writer :api_key, :system_one_key
 
     def initialize(env = ENV, store: SettingsStore.new(env), service: SecretService.new(env), load_saved: true)
-      env = env.to_h.dup
-      env.keys.grep(/\ARAILSAI_/).each do |key|
-        canonical = key.sub("RAILSAI_", "ROBOTONRAILS_")
-        env[canonical] = env[key] unless env.key?(canonical)
-      end
       saved = load_saved ? store.settings : {}
       @credentials = Credentials.new(store, saved, service: service)
       @saved_keys_enabled = saved["system_one_enabled"] != false

@@ -21,8 +21,6 @@ module RobotOnRails
 
     def lookup(id)
       invoke(["lookup", "application", "robotonrails", "credential_id", id], nil)
-    rescue Error
-      invoke(["lookup", "application", "railsai", "credential_id", id], nil)
     end
 
     private

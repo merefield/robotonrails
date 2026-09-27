@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.18
+
+- Use RobotOnRails settings, environment variables and credential-store namespace exclusively; remove legacy compatibility paths.
+
 ## 0.1.17
 
 - Rename the gem, command and Ruby namespace to RobotOnRails (`robotonrails`).

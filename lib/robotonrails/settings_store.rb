@@ -10,10 +10,7 @@ module RobotOnRails
 
     def initialize(env = ENV, directory: nil)
       base = env["XDG_CONFIG_HOME"] || File.join(Dir.home, ".config")
-      preferred = File.join(base, "robotonrails")
-      legacy = File.join(base, "railsai")
-      default_directory = !File.exist?(preferred) && File.file?(File.join(legacy, "config.yml")) ? legacy : preferred
-      @directory = File.expand_path(directory || env["ROBOTONRAILS_CONFIG_DIR"] || env["RAILSAI_CONFIG_DIR"] || default_directory)
+      @directory = File.expand_path(directory || env["ROBOTONRAILS_CONFIG_DIR"] || File.join(base, "robotonrails"))
     end
 
     def path(name)

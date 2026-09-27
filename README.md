@@ -5,7 +5,7 @@ An English-first terminal assistant for your Rails application and its installed
 ```text
 $ bundle exec robotonrails
 
-RobotOnRails 0.1.17 · myapp / development
+RobotOnRails 0.1.18 · myapp / development
 you> Which plugins extend User?
 you> Show me five accounts affected by that workflow.
 
@@ -38,7 +38,7 @@ bundle exec robotonrails
 
 No initializer, database migration, or web route is installed. `require: false` keeps RobotOnRails out of the web application's normal boot path; the CLI loads it itself.
 
-Alternatively build and install the gem locally with `gem build robotonrails.gemspec` and `gem install ./robotonrails-0.1.17.gem`, then reference `gem "robotonrails", "~> 0.1", require: false` in the application's bundle. This project has not been published to RubyGems.
+Alternatively build and install the gem locally with `gem build robotonrails.gemspec` and `gem install ./robotonrails-0.1.18.gem`, then reference `gem "robotonrails", "~> 0.1", require: false` in the application's bundle. This project has not been published to RubyGems.
 
 ## Setup wizard
 
@@ -420,15 +420,11 @@ plain. Assistant bold, italic, headings, inline code, fences and links receive
 lightweight terminal rendering; raw Ruby and execution results are never treated
 as Markdown. Arbitrary terminal control characters remain escaped.
 
-## Renamed from RailsAI
+## Configuration
 
-The gem, executable and Ruby namespace are now `robotonrails`, `robotonrails`,
-and `RobotOnRails`. Update Gemfile path references to `~/projects/robotonrails`.
-New settings use `~/.config/robotonrails` and `ROBOTONRAILS_*` environment variables.
-When the new configuration directory does not exist, an existing RailsAI config
-is used in place, including its credential storage. Legacy `RAILSAI_*` environment
-variables remain accepted; the new names take precedence. Existing OS-keyring
-entries are looked up under the old name as a fallback. No keys are copied into
-the repository. Run `robotonrails doctor` to check the local setup.
+Settings live in `~/.config/robotonrails` (or `$XDG_CONFIG_HOME/robotonrails`).
+Use `ROBOTONRAILS_CONFIG_DIR` for an explicit directory and `ROBOTONRAILS_*`
+environment variables for overrides. The gem and executable are `robotonrails`;
+the Ruby namespace is `RobotOnRails`. Run `robotonrails doctor` to check your setup.
 
 MIT licensed. See [LICENSE](LICENSE) and [COPYRIGHT.txt](COPYRIGHT.txt).
