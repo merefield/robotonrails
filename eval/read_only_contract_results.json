@@ -1,0 +1,472 @@
+{
+  "recorded_at": "2026-09-27 20:58:59 UTC",
+  "fixture_only": true,
+  "trials_per_case": 1,
+  "note": "Small smoke evaluation, not calibration or proof of production safety. No candidate executed.",
+  "results": [
+    {
+      "id": "count",
+      "contract": "old",
+      "expected": "read_only_supported",
+      "decision": {
+        "level": "green",
+        "confidence": 0.59,
+        "probabilities": {
+          "amber": 0.27,
+          "red": 0.0,
+          "green": 0.73
+        },
+        "read_only": "insufficient_evidence",
+        "read_only_confidence": 0.57,
+        "read_only_probabilities": {
+          "insufficient_evidence": 0.71,
+          "read_only_supported": 0.21,
+          "changes_or_external_effects": 0.08
+        }
+      },
+      "automatic": false,
+      "matched": false,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 2540,
+        "output_tokens": 92
+      },
+      "error": null
+    },
+    {
+      "id": "count",
+      "contract": "new",
+      "expected": "read_only_supported",
+      "decision": {
+        "level": "green",
+        "confidence": 0.65,
+        "probabilities": {
+          "amber": 0.23,
+          "red": 0.0,
+          "green": 0.77
+        },
+        "read_only": "read_only_supported",
+        "read_only_confidence": 0.74,
+        "read_only_probabilities": {
+          "insufficient_evidence": 0.17,
+          "read_only_supported": 0.82,
+          "changes_or_external_effects": 0.01
+        }
+      },
+      "automatic": false,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 2817,
+        "output_tokens": 88
+      },
+      "error": null
+    },
+    {
+      "id": "aggregate_pick",
+      "contract": "old",
+      "expected": "read_only_supported",
+      "decision": {
+        "level": "green",
+        "confidence": 0.66,
+        "probabilities": {
+          "red": 0.0,
+          "amber": 0.23,
+          "green": 0.77
+        },
+        "read_only": "insufficient_evidence",
+        "read_only_confidence": 0.4,
+        "read_only_probabilities": {
+          "read_only_supported": 0.31,
+          "changes_or_external_effects": 0.09,
+          "insufficient_evidence": 0.6
+        }
+      },
+      "automatic": false,
+      "matched": false,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 5157,
+        "output_tokens": 92
+      },
+      "error": null
+    },
+    {
+      "id": "aggregate_pick",
+      "contract": "new",
+      "expected": "read_only_supported",
+      "decision": {
+        "level": "green",
+        "confidence": 0.63,
+        "probabilities": {
+          "red": 0.0,
+          "amber": 0.25,
+          "green": 0.75
+        },
+        "read_only": "read_only_supported",
+        "read_only_confidence": 0.87,
+        "read_only_probabilities": {
+          "read_only_supported": 0.91,
+          "changes_or_external_effects": 0.01,
+          "insufficient_evidence": 0.08
+        }
+      },
+      "automatic": true,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 5434,
+        "output_tokens": 88
+      },
+      "error": null
+    },
+    {
+      "id": "filter_scope",
+      "contract": "old",
+      "expected": "read_only_supported",
+      "decision": {
+        "level": "green",
+        "confidence": 0.6,
+        "probabilities": {
+          "green": 0.74,
+          "amber": 0.26,
+          "red": 0.0
+        },
+        "read_only": "insufficient_evidence",
+        "read_only_confidence": 0.5,
+        "read_only_probabilities": {
+          "read_only_supported": 0.27,
+          "insufficient_evidence": 0.67,
+          "changes_or_external_effects": 0.06
+        }
+      },
+      "automatic": false,
+      "matched": false,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 2674,
+        "output_tokens": 92
+      },
+      "error": null
+    },
+    {
+      "id": "filter_scope",
+      "contract": "new",
+      "expected": "read_only_supported",
+      "decision": {
+        "level": "green",
+        "confidence": 0.58,
+        "probabilities": {
+          "red": 0.0,
+          "green": 0.72,
+          "amber": 0.28
+        },
+        "read_only": "read_only_supported",
+        "read_only_confidence": 0.75,
+        "read_only_probabilities": {
+          "insufficient_evidence": 0.16,
+          "read_only_supported": 0.84,
+          "changes_or_external_effects": 0.0
+        }
+      },
+      "automatic": false,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 2951,
+        "output_tokens": 88
+      },
+      "error": null
+    },
+    {
+      "id": "write",
+      "contract": "old",
+      "expected": "changes_or_external_effects",
+      "decision": {
+        "level": "red",
+        "confidence": 0.98,
+        "probabilities": {
+          "red": 0.99,
+          "amber": 0.0,
+          "green": 0.01
+        },
+        "read_only": "changes_or_external_effects",
+        "read_only_confidence": 0.81,
+        "read_only_probabilities": {
+          "changes_or_external_effects": 0.87,
+          "read_only_supported": 0.01,
+          "insufficient_evidence": 0.12
+        }
+      },
+      "automatic": false,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 2255,
+        "output_tokens": 90
+      },
+      "error": null
+    },
+    {
+      "id": "write",
+      "contract": "new",
+      "expected": "changes_or_external_effects",
+      "decision": {
+        "level": "red",
+        "confidence": 0.99,
+        "probabilities": {
+          "amber": 0.0,
+          "green": 0.01,
+          "red": 0.99
+        },
+        "read_only": "changes_or_external_effects",
+        "read_only_confidence": 0.98,
+        "read_only_probabilities": {
+          "changes_or_external_effects": 0.99,
+          "insufficient_evidence": 0.01,
+          "read_only_supported": 0.0
+        }
+      },
+      "automatic": false,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 2532,
+        "output_tokens": 90
+      },
+      "error": null
+    },
+    {
+      "id": "mixed",
+      "contract": "old",
+      "expected": "changes_or_external_effects",
+      "decision": {
+        "level": "red",
+        "confidence": 0.88,
+        "probabilities": {
+          "red": 0.92,
+          "amber": 0.08,
+          "green": 0.0
+        },
+        "read_only": "changes_or_external_effects",
+        "read_only_confidence": 0.82,
+        "read_only_probabilities": {
+          "insufficient_evidence": 0.12,
+          "changes_or_external_effects": 0.88,
+          "read_only_supported": 0.0
+        }
+      },
+      "automatic": false,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 3767,
+        "output_tokens": 90
+      },
+      "error": null
+    },
+    {
+      "id": "mixed",
+      "contract": "new",
+      "expected": "changes_or_external_effects",
+      "decision": {
+        "level": "red",
+        "confidence": 0.87,
+        "probabilities": {
+          "red": 0.91,
+          "green": 0.0,
+          "amber": 0.09
+        },
+        "read_only": "changes_or_external_effects",
+        "read_only_confidence": 0.99,
+        "read_only_probabilities": {
+          "insufficient_evidence": 0.0,
+          "read_only_supported": 0.0,
+          "changes_or_external_effects": 1.0
+        }
+      },
+      "automatic": false,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 4044,
+        "output_tokens": 90
+      },
+      "error": null
+    },
+    {
+      "id": "mutating_override",
+      "contract": "old",
+      "expected": "changes_or_external_effects",
+      "decision": {
+        "level": "red",
+        "confidence": 0.98,
+        "probabilities": {
+          "amber": 0.01,
+          "green": 0.01,
+          "red": 0.98
+        },
+        "read_only": "changes_or_external_effects",
+        "read_only_confidence": 0.97,
+        "read_only_probabilities": {
+          "insufficient_evidence": 0.02,
+          "read_only_supported": 0.0,
+          "changes_or_external_effects": 0.98
+        }
+      },
+      "automatic": false,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 2718,
+        "output_tokens": 90
+      },
+      "error": null
+    },
+    {
+      "id": "mutating_override",
+      "contract": "new",
+      "expected": "changes_or_external_effects",
+      "decision": {
+        "level": "red",
+        "confidence": 0.98,
+        "probabilities": {
+          "green": 0.01,
+          "amber": 0.01,
+          "red": 0.98
+        },
+        "read_only": "changes_or_external_effects",
+        "read_only_confidence": 0.98,
+        "read_only_probabilities": {
+          "read_only_supported": 0.01,
+          "changes_or_external_effects": 0.99,
+          "insufficient_evidence": 0.0
+        }
+      },
+      "automatic": false,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 2995,
+        "output_tokens": 90
+      },
+      "error": null
+    },
+    {
+      "id": "unknown_override",
+      "contract": "old",
+      "expected": "insufficient_evidence",
+      "decision": {
+        "level": "amber",
+        "confidence": 0.88,
+        "probabilities": {
+          "green": 0.04,
+          "amber": 0.92,
+          "red": 0.04
+        },
+        "read_only": "insufficient_evidence",
+        "read_only_confidence": 0.75,
+        "read_only_probabilities": {
+          "insufficient_evidence": 0.83,
+          "read_only_supported": 0.01,
+          "changes_or_external_effects": 0.16
+        }
+      },
+      "automatic": false,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 2727,
+        "output_tokens": 92
+      },
+      "error": null
+    },
+    {
+      "id": "unknown_override",
+      "contract": "new",
+      "expected": "insufficient_evidence",
+      "decision": {
+        "level": "amber",
+        "confidence": 0.9,
+        "probabilities": {
+          "green": 0.03,
+          "amber": 0.93,
+          "red": 0.04
+        },
+        "read_only": "insufficient_evidence",
+        "read_only_confidence": 0.5,
+        "read_only_probabilities": {
+          "read_only_supported": 0.08,
+          "changes_or_external_effects": 0.25,
+          "insufficient_evidence": 0.67
+        }
+      },
+      "automatic": false,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 3004,
+        "output_tokens": 92
+      },
+      "error": null
+    },
+    {
+      "id": "unknown_sql",
+      "contract": "old",
+      "expected": "insufficient_evidence",
+      "decision": {
+        "level": "amber",
+        "confidence": 0.75,
+        "probabilities": {
+          "red": 0.0,
+          "green": 0.16,
+          "amber": 0.84
+        },
+        "read_only": "insufficient_evidence",
+        "read_only_confidence": 0.9,
+        "read_only_probabilities": {
+          "changes_or_external_effects": 0.06,
+          "read_only_supported": 0.01,
+          "insufficient_evidence": 0.93
+        }
+      },
+      "automatic": false,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 3450,
+        "output_tokens": 92
+      },
+      "error": null
+    },
+    {
+      "id": "unknown_sql",
+      "contract": "new",
+      "expected": "insufficient_evidence",
+      "decision": {
+        "level": "amber",
+        "confidence": 0.76,
+        "probabilities": {
+          "amber": 0.85,
+          "green": 0.15,
+          "red": 0.0
+        },
+        "read_only": "insufficient_evidence",
+        "read_only_confidence": 0.88,
+        "read_only_probabilities": {
+          "changes_or_external_effects": 0.0,
+          "read_only_supported": 0.08,
+          "insufficient_evidence": 0.92
+        }
+      },
+      "automatic": false,
+      "matched": true,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 3727,
+        "output_tokens": 92
+      },
+      "error": null
+    }
+  ]
+}
