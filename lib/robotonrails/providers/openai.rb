@@ -3,7 +3,7 @@ require "net/http"
 require "uri"
 require "timeout"
 
-module RailsAI
+module RobotOnRails
   module Providers
     class OpenAI
       MAX_RESPONSE_BYTES = 2 * 1024 * 1024

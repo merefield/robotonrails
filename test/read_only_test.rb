@@ -6,7 +6,7 @@ class ReadOnlyTest < Minitest::Test
     decision = {level: level, confidence: confidence, read_only: read_only, read_only_confidence: read_only_confidence}
     service = Object.new
     service.define_singleton_method(:assess) { |**| decision }
-    risk = RailsAI::Risk.new(system_one: service, environment: environment, evidence: ->(_) { {"status" => evidence} })
+    risk = RobotOnRails::Risk.new(system_one: service, environment: environment, evidence: ->(_) { {"status" => evidence} })
     [risk, risk.assess("execute_ruby", {"code" => code, "purpose" => "test"})]
   end
 
@@ -49,13 +49,13 @@ class ReadOnlyTest < Minitest::Test
   end
 
   def test_missing_new_provider_answer_cannot_authorize
-    config = RailsAI::Config.new({}, load_saved: false)
+    config = RobotOnRails::Config.new({}, load_saved: false)
     config.system_one_url = "https://api.typesafe.ai/v1/systemone"
-    provider = RailsAI::Providers::SystemOne.new(config, transport: ->(_) {
+    provider = RobotOnRails::Providers::SystemOne.new(config, transport: ->(_) {
       {"answers" => {"risk" => {"type" => "choice", "choice" => "green", "confidence" => 0.99,
         "probabilities" => {"green" => 1.0, "amber" => 0.0, "red" => 0.0}}}}
     })
-    risk = RailsAI::Risk.new(system_one: provider, evidence: ->(_) { {"status" => "observed"} })
+    risk = RobotOnRails::Risk.new(system_one: provider, evidence: ->(_) { {"status" => "observed"} })
     result = risk.assess("execute_ruby", {"code" => "Widget.count", "purpose" => "count"})
     refute risk.automatic?(result, 1)
     assert result.force_review

@@ -6,7 +6,7 @@ class SourceIndexTest < Minitest::Test
     @dir = Dir.mktmpdir
     @outside = Dir.mktmpdir
     File.write(File.join(@dir, "model.rb"), "class Example\n  # unique-marker\nend\n")
-    @index = RailsAI::SourceIndex.new([{ "id" => "app", "path" => @dir }])
+    @index = RobotOnRails::SourceIndex.new([{ "id" => "app", "path" => @dir }])
   end
   def teardown
     FileUtils.remove_entry(@dir)
@@ -23,21 +23,21 @@ class SourceIndexTest < Minitest::Test
   def test_symlink_escape_is_blocked
     File.write(File.join(@outside, "secret.rb"), "private")
     File.symlink(File.join(@outside, "secret.rb"), File.join(@dir, "escape.rb"))
-    assert_raises(RailsAI::Error) { @index.read(root: "app", path: "escape.rb", start_line: 1) }
+    assert_raises(RobotOnRails::Error) { @index.read(root: "app", path: "escape.rb", start_line: 1) }
     assert_empty @index.search(query: "private", root: "")["matches"]
   end
 
   def test_traversal_and_secret_files_are_blocked
     File.write(File.join(@outside, "outside.rb"), "secret")
-    assert_raises(RailsAI::Error) { @index.read(root: "app", path: File.join(@outside, "outside.rb"), start_line: 1) }
+    assert_raises(RobotOnRails::Error) { @index.read(root: "app", path: File.join(@outside, "outside.rb"), start_line: 1) }
     File.write(File.join(@dir, "credentials.yml"), "password: private")
-    assert_raises(RailsAI::Error) { @index.read(root: "app", path: "credentials.yml", start_line: 1) }
+    assert_raises(RobotOnRails::Error) { @index.read(root: "app", path: "credentials.yml", start_line: 1) }
     assert_empty @index.search(query: "private", root: "")["matches"]
   end
 
   def test_file_size_and_ranges_are_bounded
-    File.write(File.join(@dir, "big.rb"), "x" * (RailsAI::SourceIndex::MAX_FILE_BYTES + 1))
-    assert_raises(RailsAI::Error) { @index.read(root: "app", path: "big.rb", start_line: 1) }
+    File.write(File.join(@dir, "big.rb"), "x" * (RobotOnRails::SourceIndex::MAX_FILE_BYTES + 1))
+    assert_raises(RobotOnRails::Error) { @index.read(root: "app", path: "big.rb", start_line: 1) }
     File.write(File.join(@dir, "lines.rb"), "line\n" * 500)
     assert_equal 200, @index.read(root: "app", path: "lines.rb", start_line: 1)["lines"].length
   end

@@ -2,7 +2,7 @@
 require "find"
 require "digest"
 
-module RailsAI
+module RobotOnRails
   class SourceIndex
     MAX_FILE_BYTES = 512 * 1024
     MAX_FILES = 10_000

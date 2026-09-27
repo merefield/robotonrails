@@ -3,7 +3,7 @@ require_relative "test_helper"
 
 class ConversationTest < Minitest::Test
   def setup
-    @config = RailsAI::Config.new({}, load_saved: false)
+    @config = RobotOnRails::Config.new({}, load_saved: false)
     @terminal = FakeTerminal.new
     @worker = FakeWorker.new
   end
@@ -14,7 +14,7 @@ class ConversationTest < Minitest::Test
 
   def conversation(*responses)
     @provider = FakeProvider.new(*responses)
-    @conversation = RailsAI::Conversation.new(config: @config, provider: @provider, worker: @worker, terminal: @terminal, redactor: RailsAI::Redactor.new({}))
+    @conversation = RobotOnRails::Conversation.new(config: @config, provider: @provider, worker: @worker, terminal: @terminal, redactor: RobotOnRails::Redactor.new({}))
   end
 
   def test_declined_code_never_reaches_worker_or_gets_retried

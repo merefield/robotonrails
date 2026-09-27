@@ -3,11 +3,11 @@ require_relative "test_helper"
 
 class WorkerTest < Minitest::Test
   def setup
-    @config = RailsAI::Config.new({}, load_saved: false)
+    @config = RobotOnRails::Config.new({}, load_saved: false)
     @config.root = File.expand_path("fixtures/app", __dir__)
     @config.environment = "test"
     @config.boot_timeout = 30
-    @worker = RailsAI::WorkerClient.new(@config).start
+    @worker = RobotOnRails::WorkerClient.new(@config).start
   end
 
   def teardown
@@ -64,16 +64,16 @@ class WorkerTest < Minitest::Test
 
   def test_timeout_stops_worker_and_requires_explicit_restart
     @config.timeout = 0.05
-    error = assert_raises(RailsAI::WorkerError) { execute("sleep 5") }
+    error = assert_raises(RobotOnRails::WorkerError) { execute("sleep 5") }
     assert_match(/outcome may be unknown/, error.message)
-    assert_raises(RailsAI::WorkerError) { execute("42") }
+    assert_raises(RobotOnRails::WorkerError) { execute("42") }
     @config.timeout = 5
     @worker.start
     assert_equal "42", execute("42").dig("result", "value")
   end
 
   def test_process_exit_does_not_exit_client
-    assert_raises(RailsAI::WorkerError) { execute("exit! 7") }
+    assert_raises(RobotOnRails::WorkerError) { execute("exit! 7") }
     @worker.start
     assert_equal "42", execute("42").dig("result", "value")
   end
@@ -93,7 +93,7 @@ class WorkerTest < Minitest::Test
     execute('class << Widget; def count; raise "must not execute"; end; end')
     evidence = @worker.call("risk_evidence", { "code" => "Widget.count" }).fetch("result")
     chain = evidence.fetch("calls").first.fetch("chain")
-    assert_equal "(railsai)", chain.first.fetch("source_location").first
+    assert_equal "(robotonrails)", chain.first.fetch("source_location").first
     assert chain.drop(1).any? { |entry| entry["origin"] == "gem:activerecord" }
     assert_equal "ok", @worker.call("risk_evidence", { "code" => "Widget.count" })["status"]
   end
@@ -117,7 +117,7 @@ class WorkerTest < Minitest::Test
     assert_equal "ActiveRecord::Calculations", count.fetch("chain").first["owner"]
     execute('Widget.send(:relation_delegate_class, ActiveRecord::Relation).class_eval { def count; raise "must not execute"; end }')
     evidence = @worker.call("risk_evidence", {"code" => "Widget.where(name: nil).count"}).fetch("result")
-    assert_equal "(railsai)", evidence.fetch("calls").first.fetch("chain").first.fetch("source_location").first
+    assert_equal "(robotonrails)", evidence.fetch("calls").first.fetch("chain").first.fetch("source_location").first
     execute('class << Widget; def where(*); raise "must not execute"; end; end')
     evidence = @worker.call("risk_evidence", {"code" => "Widget.where(name: nil).count"}).fetch("result")
     assert_equal "unresolved", evidence.fetch("calls").first["status"]
@@ -159,7 +159,7 @@ class WorkerTest < Minitest::Test
     evidence = @worker.call("risk_evidence", {"code" => 'Widget.group(:name).count.first'}).fetch("result")
     assert_equal "unresolved", evidence.fetch("calls").first["status"]
     count = evidence.fetch("calls").find { |call| call["method"] == "count" }
-    assert_equal "(railsai)", count.fetch("chain").first.fetch("source_location").first
+    assert_equal "(robotonrails)", count.fetch("chain").first.fetch("source_location").first
   end
 
   def test_pick_includes_model_specific_pluck_without_execution
@@ -174,7 +174,7 @@ class WorkerTest < Minitest::Test
     ['Widget.pick(:name)', 'Widget.where(name: nil).pick(:name)'].each do |code|
       evidence = @worker.call("risk_evidence", {"code" => code}).fetch("result")
       pluck = evidence.fetch("calls").first.fetch("delegation_context").fetch("relation_methods").fetch("pluck")
-      assert_equal "(railsai)", pluck.first.fetch("source_location").first
+      assert_equal "(robotonrails)", pluck.first.fetch("source_location").first
       assert pluck.drop(1).any? { |entry| entry["owner"] == "ActiveRecord::Calculations" }
     end
   end
@@ -205,7 +205,7 @@ class WorkerTest < Minitest::Test
     assert_equal 2, scopes["count"]
     assert_equal [nil, true], scopes["entries"].map { |entry| entry["all_queries"] }
     assert scopes["entries"].all? { |entry| entry["body_executed"] == false && entry["kind"] == "proc" }
-    assert scopes["entries"].all? { |entry| entry["source_location"].first == "(railsai)" }
+    assert scopes["entries"].all? { |entry| entry["source_location"].first == "(robotonrails)" }
   end
 
   def test_scope_block_source_is_reported_without_execution
@@ -223,7 +223,7 @@ class WorkerTest < Minitest::Test
     assert_equal "unresolved_reader", scopes["reader_status"]
     refute scopes.key?("count")
     assert_equal true, scopes["custom_default_scope_method"]
-    assert_equal "(railsai)", scopes["custom_default_scope_chain"].first["source_location"].first
+    assert_equal "(robotonrails)", scopes["custom_default_scope_chain"].first["source_location"].first
   end
 
   def test_current_scope_registry_is_read_without_evaluating_relation

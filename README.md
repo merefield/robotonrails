@@ -1,11 +1,11 @@
-# RailsAI
+# RobotOnRails
 
 An English-first terminal assistant for your Rails application and its installed plugins.
 
 ```text
-$ bundle exec railsai
+$ bundle exec robotonrails
 
-RailsAI 0.1.15 · myapp / development
+RobotOnRails 0.1.17 · myapp / development
 you> Which plugins extend User?
 you> Show me five accounts affected by that workflow.
 
@@ -16,7 +16,7 @@ Inspect five affected accounts
 Execute? [y/e/N]:
 ```
 
-The example query is illustrative: RailsAI discovers your real schema and source before proposing code. Ordinary input is English. No `ask(...)` wrapper, MCP server, web endpoint, or separate Go client.
+The example query is illustrative: RobotOnRails discovers your real schema and source before proposing code. Ordinary input is English. No `ask(...)` wrapper, MCP server, web endpoint, or separate Go client.
 
 ## Install from this checkout
 
@@ -25,49 +25,49 @@ Requires Ruby 3.2+, a bootable Rails application, and Linux or macOS. Windows pr
 Add to your application's `Gemfile` in the environments where you intend to use it:
 
 ```ruby
-gem "railsai", path: File.expand_path("~/projects/railsai"), require: false
+gem "robotonrails", path: File.expand_path("~/projects/robotonrails"), require: false
 ```
 
 Then, **from your Rails application directory**:
 
 ```bash
 bundle install
-bundle exec railsai setup
-bundle exec railsai
+bundle exec robotonrails setup
+bundle exec robotonrails
 ```
 
-No initializer, database migration, or web route is installed. `require: false` keeps RailsAI out of the web application's normal boot path; the CLI loads it itself.
+No initializer, database migration, or web route is installed. `require: false` keeps RobotOnRails out of the web application's normal boot path; the CLI loads it itself.
 
-Alternatively build and install the gem locally with `gem build railsai.gemspec` and `gem install ./railsai-0.1.15.gem`, then reference `gem "railsai", "~> 0.1", require: false` in the application's bundle. This project has not been published to RubyGems.
+Alternatively build and install the gem locally with `gem build robotonrails.gemspec` and `gem install ./robotonrails-0.1.17.gem`, then reference `gem "robotonrails", "~> 0.1", require: false` in the application's bundle. This project has not been published to RubyGems.
 
 ## Setup wizard
 
-Run `bundle exec railsai setup` once. It prompts for your OpenAI key (masked with bullets),
+Run `bundle exec robotonrails setup` once. It prompts for your OpenAI key (masked with bullets),
 model, optional Jev credentials, risk appetite, Rails application directory and
 environment. Enter keeps existing values; Ctrl-C cancels. You review the choices
 before anything is saved. Backspace edits keys and Ctrl-U clears an entry.
 Bullets reveal the number of characters, but never the characters themselves.
 Redirected output uses fully hidden entry instead. Setup makes no provider API calls.
 
-Settings load automatically from `~/.config/railsai/config.yml`. Linux Secret
+Settings load automatically from `~/.config/robotonrails/config.yml`. Linux Secret
 Service (`secret-tool`, supplied by `libsecret-tools`) can hold the keys; its
 desktop session must be available and unlocked. Otherwise the wizard asks before
-saving plaintext keys in `~/.config/railsai/credentials.json`, mode `0600`, inside
+saving plaintext keys in `~/.config/robotonrails/credentials.json`, mode `0600`, inside
 a `0700` directory. This release uses that file fallback on macOS and systems
 without Secret Service. Keys never appear in the settings YAML, terminal history,
 or credential-helper arguments. Re-running setup can keep or replace keys.
 Changing to Secret Service leaves any previous credentials file for you to remove;
 repeated Secret Service saves create separate credential entries.
 
-`XDG_CONFIG_HOME` changes the base configuration directory; `RAILSAI_CONFIG_DIR`
-overrides the complete RailsAI directory. CLI flags override exported environment
+`XDG_CONFIG_HOME` changes the base configuration directory; `ROBOTONRAILS_CONFIG_DIR`
+overrides the complete RobotOnRails directory. CLI flags override exported environment
 variables, which override saved settings. Existing `OPENAI_API_KEY`,
-`RAILSAI_MODEL`, `RAILS_ENV`, `RAILSAI_RISK_APPETITE` and System One variables
-continue to work; `RAILSAI_APP` overrides the saved application path. Setup does
-not edit shell startup files or source dotenv files. Continue running RailsAI
+`ROBOTONRAILS_MODEL`, `RAILS_ENV`, `ROBOTONRAILS_RISK_APPETITE` and System One variables
+continue to work; `ROBOTONRAILS_APP` overrides the saved application path. Setup does
+not edit shell startup files or source dotenv files. Continue running RobotOnRails
 with the target application's Ruby and bundle.
 
-Run `bundle exec railsai doctor` to check configuration, key presence and actual
+Run `bundle exec robotonrails doctor` to check configuration, key presence and actual
 Rails startup. It makes no provider API calls and does not verify key validity.
 Booting Rails runs the application's initializers. A missing OpenAI key or failed
 startup returns a nonzero exit status.
@@ -76,12 +76,12 @@ startup returns a nonzero exit status.
 
 Setup displays `https://api.openai.com/v1/responses` as the initial endpoint.
 Press Enter to keep it (or your saved URL on later runs), or enter a full custom
-HTTPS Responses endpoint. It is saved as `llm_url`; `RAILSAI_LLM_URL` and
+HTTPS Responses endpoint. It is saved as `llm_url`; `ROBOTONRAILS_LLM_URL` and
 `--llm-url URL` override it. Your configured API key and selected application
 context are sent to that endpoint. Redirects are not followed.
 
 Custom services must implement the Responses API, including the tool-calling
-and encrypted-reasoning options RailsAI sends. A Chat Completions URL is not
+and encrypted-reasoning options RobotOnRails sends. A Chat Completions URL is not
 interchangeable. Azure-specific authentication and API-version parameters are
 not implemented; URLs with credentials, query parameters or fragments are rejected.
 
@@ -92,9 +92,9 @@ They also have CLI and environment overrides:
 
 | CLI flag | Environment variable | Default |
 | --- | --- | --- |
-| `--reasoning-effort LEVEL` | `RAILSAI_REASONING_EFFORT` | `default` |
-| `--max-output-tokens N` | `RAILSAI_MAX_OUTPUT_TOKENS` | `4096` |
-| `--api-timeout SECONDS` | `RAILSAI_API_TIMEOUT` | `120` |
+| `--reasoning-effort LEVEL` | `ROBOTONRAILS_REASONING_EFFORT` | `default` |
+| `--max-output-tokens N` | `ROBOTONRAILS_MAX_OUTPUT_TOKENS` | `4096` |
+| `--api-timeout SECONDS` | `ROBOTONRAILS_API_TIMEOUT` | `120` |
 
 Effort accepts `default`, `none`, `minimal`, `low`, `medium`, `high`,
 `xhigh` and `max`. `default` omits the API parameter; it does not mean
@@ -106,7 +106,7 @@ Keep `default` for non-reasoning models.
 For a compatible reasoning model selected in setup:
 
 ```bash
-bundle exec railsai --reasoning-effort high --max-output-tokens 16384 --api-timeout 300
+bundle exec robotonrails --reasoning-effort high --max-output-tokens 16384 --api-timeout 300
 ```
 
 The token budget is per response and includes internal reasoning as well as the
@@ -126,14 +126,14 @@ count. These are model instructions, not a parser that rewrites arbitrary Ruby.
 
 
 ```bash
-bundle exec railsai --environment staging
-bundle exec railsai --app /srv/myapp --environment production --risk-appetite 0
-bundle exec railsai --inspect-only
-bundle exec railsai --inventory           # local discovery; no model or key needed
-bundle exec railsai how many active users do we have
+bundle exec robotonrails --environment staging
+bundle exec robotonrails --app /srv/myapp --environment production --risk-appetite 0
+bundle exec robotonrails --inspect-only
+bundle exec robotonrails --inventory           # local discovery; no model or key needed
+bundle exec robotonrails how many active users do we have
 ```
 
-Use `--app` with the target application's Ruby version. The worker activates the target Gemfile before loading RailsAI dependencies, including when launched directly with `ruby /path/to/railsai/exe/railsai`. Rails boots once in a separate worker; it retains Ruby local variables across commands. Environment is explicit in the banner and every review. The shell still interprets metacharacters in one-shot requests: quote those requests or use interactive mode.
+Use `--app` with the target application's Ruby version. The worker activates the target Gemfile before loading RobotOnRails dependencies, including when launched directly with `ruby /path/to/robotonrails/exe/robotonrails`. Rails boots once in a separate worker; it retains Ruby local variables across commands. Environment is explicit in the banner and every review. The shell still interprets metacharacters in one-shot requests: quote those requests or use interactive mode.
 
 | Command | Behaviour |
 | --- | --- |
@@ -166,7 +166,7 @@ Every proposed tool action displays its risk. Ruby proposals display the exact c
 | `1` **default** | Inspection tools; Ruby supported as read-only above its confidence threshold, unless RED | Unsupported/uncertain effects, RED, edited commands, unavailable assessments |
 | `2` | Supported reads as above, plus sufficiently confident green and amber | Red, edited commands, and uncertain/unavailable risk assessments |
 
-Use `--risk-appetite N` or `RAILSAI_RISK_APPETITE=N`. Level 2 deliberately allows some Ruby to run automatically with application permissions; use it only when that is acceptable. Red always requires `y` **and** a second confirmation. For manually approved production Ruby, type `execute production`; elsewhere red requires `execute`. Production Ruby always requires explicit confirmation, regardless of colour or appetite. Explicit local commands such as `/models` are directly requested inspections rather than model proposals.
+Use `--risk-appetite N` or `ROBOTONRAILS_RISK_APPETITE=N`. Level 2 deliberately allows some Ruby to run automatically with application permissions; use it only when that is acceptable. Red always requires `y` **and** a second confirmation. For manually approved production Ruby, type `execute production`; elsewhere red requires `execute`. Production Ruby always requires explicit confirmation, regardless of colour or appetite. Explicit local commands such as `/models` are directly requested inspections rather than model proposals.
 
 **Risk assessment is advisory, not a security boundary.** Both Jev and the LLM
 receive fresh runtime evidence and local lexical observations. Their validated
@@ -187,7 +187,7 @@ Scope filtering may change the answer without constituting a write; uncertain
 scope effects still warrant review. No live accuracy or confidence calibration is claimed.
 
 ```bash
-ruby ~/projects/railsai/exe/railsai --read-only-confidence 0.80
+ruby ~/projects/robotonrails/exe/robotonrails --read-only-confidence 0.80
 ```
 
 `--risk-confidence 0.70` alone does not change the read-only threshold.
@@ -196,9 +196,9 @@ Details (`d` or `/risk-debug`) show both judgments, their thresholds and the evi
 
 ## Explanations for uncertain reviews
 
-When an uncertain assessment or an AMBER action awaits confirmation, RailsAI
+When an uncertain assessment or an AMBER action awaits confirmation, RobotOnRails
 makes one additional request to your configured LLM and displays a short
-`Why review (LLM): ...` explanation. It receives the same runtime evidence,
+short explanation below the command. It receives the same runtime evidence,
 candidate code, factual observations, decision and review threshold.
 
 The explanation is an independent interpretation, not Jev's internal reasoning.
@@ -239,7 +239,7 @@ assessor interpret evidence without implying database behavior has been proven s
 ## Inspect a risk assessment
 
 The review uses a single compact conclusion, for example:
-`● GREEN · Jev · read_only_supported · category confidence 95% · auto`. The percentage is confidence in the selected eligibility category, not the probability that the code is read-only; colour confidence remains in the details.
+`● GREEN · Read-only · Running automatically`. Provider names, exact eligibility categories, and both confidence values remain in details. `--verbose` also displays the assessment summary.
 The purpose and exact Ruby remain visible below it. Auto-run/review status is
 included on that same line. Automatic inspection steps are quiet by default.
 Use `--verbose` to show each inspected tool and its arguments, without presenting
@@ -247,12 +247,12 @@ them as additional risk conclusions. Inspections that require approval still
 show their details and confirmation prompt. Full probabilities, threshold and evidence remain in the details view.
 LLM confidence is self-reported; no probability distribution is invented.
 
-At `Execute? [y/e/d/N]`, type `d` to inspect the current assessment without
+At the `[y] Execute · [e] Edit · [d] Details · [Enter] Cancel` prompt, type `d` to inspect the current assessment without
 approving execution or making another API request. After a turn, `/risk-debug`
 shows the last Ruby assessment. To save it:
 
 ```text
-/risk-debug /tmp/railsai-user-count-risk.json
+/risk-debug /tmp/robotonrails-user-count-risk.json
 ```
 
 The report includes the proposed code and purpose, user request, environment,
@@ -273,7 +273,7 @@ risk policy, recollect evidence, rerun the assessor, or execute the proposed Rub
 
 ## Optional System One / Jev risk assessment
 
-Without System One, RailsAI collects the same runtime evidence, then makes a
+Without System One, RobotOnRails collects the same runtime evidence, then makes a
 separate structured risk-assessment request using your configured LLM, endpoint,
 reasoning effort and request limits. The proposing model does not supply a risk
 label. The assessor receives only the candidate, user request, environment,
@@ -289,10 +289,10 @@ Set **all three** values to replace that separate LLM assessment with a TypeSafe
 export SYSTEM_ONE_KEY='your-typesafe-key'
 export SYSTEM_ONE_URL='https://api.typesafe.ai/v1/systemone'
 export SYSTEM_ONE_MODEL='jev-latest'
-bundle exec railsai
+bundle exec robotonrails
 ```
 
-`RAILSAI_SYSTEM_ONE_KEY`, `RAILSAI_SYSTEM_ONE_URL`, and `RAILSAI_SYSTEM_ONE_MODEL` are supported namespaced equivalents. `SYSTEM_ONE_API` is also accepted for the URL. Namespaced values take precedence. The URL is the **full HTTPS evaluation endpoint**, not a base URL. No redirect is followed. Partial configuration produces a visible notice and leaves LLM risk assessment enabled.
+`ROBOTONRAILS_SYSTEM_ONE_KEY`, `ROBOTONRAILS_SYSTEM_ONE_URL`, and `ROBOTONRAILS_SYSTEM_ONE_MODEL` are supported namespaced equivalents. `SYSTEM_ONE_API` is also accepted for the URL. Namespaced values take precedence. The URL is the **full HTTPS evaluation endpoint**, not a base URL. No redirect is followed. Partial configuration produces a visible notice and leaves LLM risk assessment enabled.
 
 When enabled:
 
@@ -310,7 +310,7 @@ API contract: [TypeSafe HTTP API](https://docs.typesafe.ai/api), [Choice](https:
 
 ## Application and plugin knowledge
 
-RailsAI eagerly loads the Rails application, lists loaded ActiveRecord models, and exposes columns, associations, ancestors and method source locations. It discovers Rails engines and their source directories. If `Discourse.plugins` is available, it also identifies loaded Discourse plugins through their runtime registry. Other `plugins/*/plugin.rb` directories are listed as present but **not known to be loaded**.
+RobotOnRails eagerly loads the Rails application, lists loaded ActiveRecord models, and exposes columns, associations, ancestors and method source locations. It discovers Rails engines and their source directories. If `Discourse.plugins` is available, it also identifies loaded Discourse plugins through their runtime registry. Other `plugins/*/plugin.rb` directories are listed as present but **not known to be loaded**.
 
 Each source root has an ID; searches and reads return paths and line numbers. Reads include a SHA-256 fingerprint. Plugin directories and loaded engine roots may reside outside the application directory: they become explicit discovery roots. An arbitrary symlink cannot expand an existing root's read permissions. Common secrets files, dependency/build directories, and logs are excluded from source tools.
 
@@ -340,7 +340,7 @@ The first release intentionally has no web UI, Slack bot, background-agent servi
 
 ## Bounds, privacy and configuration
 
-- Default model: `gpt-4.1`; override with `--model` or `RAILSAI_MODEL` using a Responses/tool-calling model available to your account.
+- Default model: `gpt-4.1`; override with `--model` or `ROBOTONRAILS_MODEL` using a Responses/tool-calling model available to your account.
 - Worker startup: 120 seconds; operation: 30 seconds. Set `--boot-timeout` and `--timeout` as needed.
 - Per turn: 12 model rounds; identical tool calls stop after two executions. Set `--max-rounds` to adjust the round limit.
 - Conversation: 512 KiB before the next request; `/reset` clears it. No hidden truncation or automatic summarisation of previous instructions.
@@ -356,7 +356,7 @@ OpenAI integration follows the [official function-calling documentation](https:/
 ```bash
 bundle install
 bundle exec rake test
-gem build railsai.gemspec
+gem build robotonrails.gemspec
 ```
 
 Tests cover a real Rails/SQLite worker, a Discourse-shaped plugin registry, source confinement, command editing and traffic-light policy, approval and cancellation, malformed/uncertain Jev responses, OpenAI tool-call round trips, redaction, private audit files, output flooding, crashes and timeouts. Provider tests use deterministic responses without spending API credits.
@@ -398,3 +398,37 @@ See [the initial evaluation](eval/read_only_contract_results.json): the aggregat
 read cleared 0.80, while simple/scoped counts remained below that threshold despite
 being classified read-only. One trial per case is a smoke check, not calibration
 or a guarantee about Discourse or other applications.
+
+### Terminal presentation
+
+Ruby appears before the risk decision, with whitespace and restrained syntax
+highlighting. Single-line commands have a simple gutter; multiline commands have
+line numbers. The displayed code is never reformatted before execution. The
+assistant is asked to generate readable multiline Ruby initially.
+
+Only the risk badge uses the traffic-light colour. Purpose and gutters are muted,
+results have a cyan arrow, and errors have a red heading. Production is repeated
+prominently on each execution proposal. RED, production, edited commands, and
+non-interactive guards are unchanged. Review explanations focus on concrete
+effects or unresolved behavior; full evidence is available through `d`.
+
+Startup shows the app, environment, model, review policy and data-sharing notice.
+Use `/status` for endpoints, generation settings, assessor and thresholds; use
+`--verbose` for inspection chatter and assessment summaries. Thinking/loading
+text clears on interactive terminals. Redirected output and `NO_COLOR` remain
+plain. Assistant bold, italic, headings, inline code, fences and links receive
+lightweight terminal rendering; raw Ruby and execution results are never treated
+as Markdown. Arbitrary terminal control characters remain escaped.
+
+## Renamed from RailsAI
+
+The gem, executable and Ruby namespace are now `robotonrails`, `robotonrails`,
+and `RobotOnRails`. Update Gemfile path references to `~/projects/robotonrails`.
+New settings use `~/.config/robotonrails` and `ROBOTONRAILS_*` environment variables.
+When the new configuration directory does not exist, an existing RailsAI config
+is used in place, including its credential storage. Legacy `RAILSAI_*` environment
+variables remain accepted; the new names take precedence. Existing OS-keyring
+entries are looked up under the old name as a fallback. No keys are copied into
+the repository. Run `robotonrails doctor` to check the local setup.
+
+MIT licensed. See [LICENSE](LICENSE) and [COPYRIGHT.txt](COPYRIGHT.txt).

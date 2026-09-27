@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-module RailsAI
+module RobotOnRails
   module Providers
     class LLMRisk
       attr_reader :usage, :last_debug

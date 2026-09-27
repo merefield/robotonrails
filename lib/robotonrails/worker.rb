@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 # Private subprocess entry point; protocol responses use FD 3, never stdout.
-# Activate the host bundle before RailsAI can load any versioned dependencies.
+# Activate the host bundle before RobotOnRails can load any versioned dependencies.
 begin
-  gemfile = File.join(ENV.fetch("RAILSAI_APP"), "Gemfile")
+  gemfile = File.join(ENV.fetch("ROBOTONRAILS_APP"), "Gemfile")
   if File.file?(gemfile)
     ENV["BUNDLE_GEMFILE"] = gemfile
     require "bundler/setup"
   end
-  require_relative "../railsai"
+  require_relative "../robotonrails"
 rescue LoadError, StandardError => e
   STDERR.puts("Rails worker bootstrap failed: #{e.class}: #{e.message}")
   exit 1
 end
 
-module RailsAI
+module RobotOnRails
   class Worker
     MAX_REQUEST = 64 * 1024
     MAX_RESPONSE = 48 * 1024
@@ -29,7 +29,7 @@ module RailsAI
       protocol = IO.new(3, "w")
       protocol.sync = true
       STDOUT.sync = STDERR.sync = true
-      root = ENV.fetch("RAILSAI_APP")
+      root = ENV.fetch("ROBOTONRAILS_APP")
       Dir.chdir(root)
       require File.join(root, "config/environment.rb")
       raise Error, "Rails application failed to load." unless defined?(Rails) && Rails.application
@@ -47,7 +47,7 @@ module RailsAI
             MethodEvidence.new(discovery.roots).collect(args.fetch("code"))
           elsif name == "execute_ruby"
             Rails.application.executor.wrap do
-              result = context.eval(args.fetch("code"), "(railsai)", 1)
+              result = context.eval(args.fetch("code"), "(robotonrails)", 1)
               { "value" => result.inspect[0, 12_000] }
             end
           else
@@ -75,4 +75,4 @@ module RailsAI
   end
 end
 
-RailsAI::Worker.run if $PROGRAM_NAME == __FILE__
+RobotOnRails::Worker.run if $PROGRAM_NAME == __FILE__

@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-module RailsAI
+module RobotOnRails
   class Redactor
     def initialize(env = ENV, secrets: [])
       @secrets = env.select { |key, value| key.match?(/KEY|TOKEN|PASSWORD|SECRET|CREDENTIAL/i) && value.to_s.length >= 8 }.values.concat(secrets.compact.reject(&:empty?)).uniq.sort_by { |s| -s.length }

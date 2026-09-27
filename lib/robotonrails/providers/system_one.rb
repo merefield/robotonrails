@@ -3,7 +3,7 @@ require "net/http"
 require "uri"
 require "timeout"
 
-module RailsAI
+module RobotOnRails
   module Providers
     class SystemOne
       LABELS = %w[green amber red].freeze

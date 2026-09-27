@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-module RailsAI
+module RobotOnRails
   class Setup
     def initialize(terminal:, env: ENV, store: SettingsStore.new(env), service: SecretService.new(env))
       @terminal, @env, @store, @service = terminal, env, store, service
@@ -7,7 +7,7 @@ module RailsAI
 
     def run
       raise Error, "Setup needs an interactive terminal for hidden key entry." unless @terminal.interactive?
-      @terminal.say("RailsAI setup\nSettings: #{@store.path('config.yml')}\nPress Enter to keep a displayed default. Ctrl-C cancels setup.")
+      @terminal.say("RobotOnRails setup\nSettings: #{@store.path('config.yml')}\nPress Enter to keep a displayed default. Ctrl-C cancels setup.")
       config = Config.new(@env, store: @store, service: @service)
       openai_key = key("OpenAI API key", existing_key(config, :api_key))
       llm_url = ask("LLM Responses endpoint", config.llm_url) do |value|
@@ -64,7 +64,7 @@ module RailsAI
       @store.write("credentials.json", JSON.pretty_generate(secrets) + "\n") if backend == "file"
       settings["credential_backend"] = backend
       @store.save(settings)
-      @terminal.say("\nSaved #{@store.path('config.yml')}.\nRun railsai to start, or railsai doctor to check application startup. No API requests were made.")
+      @terminal.say("\nSaved #{@store.path('config.yml')}.\nRun robotonrails to start, or robotonrails doctor to check application startup. No API requests were made.")
       if backend == "secret_service" && File.exist?(@store.path("credentials.json"))
         @terminal.say("An older credentials.json remains unused; remove it if you no longer need that backup.")
       end

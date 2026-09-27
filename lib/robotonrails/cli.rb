@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require "optparse"
 
-module RailsAI
+module RobotOnRails
   class CLI
     HELP = <<~TEXT
       Type a request in English. Follow up naturally.
@@ -13,7 +13,7 @@ module RailsAI
       /models     List loaded models locally
       /reset      Clear conversation (worker variables remain)
       /restart    Restart Rails and clear conversation and variables
-      /exit       Leave RailsAI
+      /exit       Leave RobotOnRails
       Ctrl-C      Stop the turn and worker; /restart to reconnect
     TEXT
 
@@ -23,7 +23,7 @@ module RailsAI
 
     def run(argv)
       if argv.first == "setup"
-        raise Error, "Usage: railsai setup" unless argv.length == 1
+        raise Error, "Usage: robotonrails setup" unless argv.length == 1
         return Setup.new(terminal: @terminal).run
       end
       doctor = argv.first == "doctor"
@@ -31,10 +31,10 @@ module RailsAI
       config = Config.new
       inspect = false
       parser = OptionParser.new do |options|
-        options.banner = "Usage: railsai [options] [request...]\nAn English-first console for your Rails application.\nCommands: setup (save settings), doctor (local startup check)."
+        options.banner = "Usage: robotonrails [options] [request...]\nAn English-first console for your Rails application.\nCommands: setup (save settings), doctor (local startup check)."
         options.on("--app PATH", "Rails application directory (default: saved app or current directory)") { |v| config.root = v }
         options.on("-e", "--environment NAME", "Rails environment (default: RAILS_ENV or development)") { |v| config.environment = v }
-        options.on("-m", "--model NAME", "OpenAI model (default: RAILSAI_MODEL or gpt-4.1)") { |v| config.model = v }
+        options.on("-m", "--model NAME", "OpenAI model (default: ROBOTONRAILS_MODEL or gpt-4.1)") { |v| config.model = v }
         options.on("--reasoning-effort LEVEL", "Model default, none, minimal, low, medium, high, xhigh or max") { |v| config.reasoning_effort = v }
         options.on("--max-output-tokens N", Integer, "Per-response output budget, including reasoning (default: 4096)") { |v| config.max_output_tokens = v }
         options.on("--api-timeout SECONDS", Integer, "OpenAI request deadline (default: 120)") { |v| config.api_timeout = v }
@@ -71,7 +71,7 @@ No API requests were made; credential validity was not checked.")
         @terminal.say(JSON.pretty_generate(redactor.call(worker.inventory)))
         return 0
       end
-      @terminal.say(config.generation_summary)
+      @terminal.say(config.generation_summary) if @terminal.verbose
       audit = Audit.new(config.audit_path) if config.audit_path
       system_one = Providers::SystemOne.new(config, redactor: redactor) if config.system_one_enabled?
       llm_risk = Providers::LLMRisk.new(config, redactor: redactor) unless system_one
@@ -84,9 +84,11 @@ No API requests were made; credential validity was not checked.")
       risk = Risk.new(system_one: system_one, environment: config.environment, confidence: config.risk_confidence, read_only_confidence: config.read_only_confidence, evidence: evidence, llm: llm_risk, redactor: redactor, explainer: explainer)
       conversation = Conversation.new(config: config, provider: Providers::OpenAI.new(config), worker: worker,
                                       terminal: @terminal, redactor: redactor, audit: audit, risk: risk)
-      @terminal.say("\nRailsAI #{VERSION} · #{File.basename(config.root)} / #{config.environment}\n#{config.model} · risk appetite #{config.risk_appetite}#{config.inspect_only ? ' · inspection only' : ''}\nSource and selected results are sent to the configured LLM endpoint. Risk labels are advisory. /help for commands.\n")
+      policy = ["review all", "automatic reads", "automatic green/amber"][config.risk_appetite]
+      @terminal.say("\nRobotOnRails #{VERSION} · #{File.basename(config.root)} / #{config.environment}\n#{config.model} · #{policy}#{config.inspect_only ? ' · inspection only' : ''}\nSource and selected results go to configured AI services. Risk labels are advisory. /help · /status\n")
       @terminal.say("Appetite 2 can automatically execute Ruby with application permissions.") if config.risk_appetite == 2
-      @terminal.say("Risk assessor: #{system_one ? 'System One / ' + config.system_one_model : 'LLM structured assessment'} with runtime evidence.")
+      assessor = system_one ? "System One / " + config.system_one_model : "LLM structured assessment"
+      @terminal.say("Risk assessor: #{assessor} with runtime evidence.") if @terminal.verbose
       unless args.empty?
         conversation.ask(args.join(" "))
         return 0
@@ -98,7 +100,7 @@ No API requests were made; credential validity was not checked.")
           next if input.strip.empty?
           case input.strip
           when "/help" then @terminal.say(HELP)
-          when "/status" then @terminal.say(config.generation_summary); @terminal.say("#{config.root} / #{config.environment}\nModel: #{config.model}\nRisk appetite: #{config.risk_appetite}\nTokens: #{JSON.generate(conversation.usage)}")
+          when "/status" then @terminal.say(config.generation_summary); @terminal.say("Risk assessor: #{assessor}\nRead-only confidence: #{config.read_only_confidence}; colour confidence: #{config.risk_confidence}"); @terminal.say("#{config.root} / #{config.environment}\nModel: #{config.model}\nRisk appetite: #{config.risk_appetite}\nTokens: #{JSON.generate(conversation.usage)}")
             @terminal.say("System One tokens: #{JSON.generate(system_one.usage)}") if system_one
             @terminal.say("LLM risk-assessment tokens: #{JSON.generate(llm_risk.usage)}") if llm_risk
             @terminal.say("Risk-explanation tokens: #{JSON.generate(explainer.usage)}")

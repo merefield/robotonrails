@@ -7,15 +7,15 @@ class RiskExplanationTest < Minitest::Test
   end
 
   def setup
-    @config = RailsAI::Config.new({}, load_saved: false)
+    @config = RobotOnRails::Config.new({}, load_saved: false)
     @provider = FakeProvider.new({"calls" => [{"name" => "explain_review", "arguments" => {
       "basis" => "missing_evidence", "explanation" => "The chained receiver is unresolved; no write is shown."}}],
       "usage" => {"input_tokens" => 30, "output_tokens" => 12}})
-    @explainer = RailsAI::Providers::RiskExplanation.new(@config, provider: @provider,
-      redactor: RailsAI::Redactor.new({}, secrets: ["saved-secret-key"]))
+    @explainer = RobotOnRails::Providers::RiskExplanation.new(@config, provider: @provider,
+      redactor: RobotOnRails::Redactor.new({}, secrets: ["saved-secret-key"]))
     @service = Object.new
     def @service.assess(**) = {level: :green, confidence: 0.51}
-    @risk = RailsAI::Risk.new(system_one: @service, explainer: @explainer,
+    @risk = RobotOnRails::Risk.new(system_one: @service, explainer: @explainer,
       evidence: ->(_) { {"status" => "observed", "calls" => [{"receiver" => "(dynamic)", "status" => "unresolved"}], "source" => "saved-secret-key"} })
     @args = {"code" => "User.real.count", "purpose" => "Count requested real users"}
   end
@@ -41,23 +41,23 @@ class RiskExplanationTest < Minitest::Test
 
   def test_terminal_explains_once_and_details_do_not_requery
     output = StringIO.new
-    terminal = RailsAI::Terminal.new(input: TTY.new("d\nn\n"), output: output)
+    terminal = RobotOnRails::Terminal.new(input: TTY.new("d\nn\n"), output: output)
     assert_nil terminal.review(name: "execute_ruby", arguments: @args, environment: "development", appetite: 1, risk: @risk)
-    assert_includes output.string, "Why review (LLM): The chained receiver"
+    assert_includes output.string, "The chained receiver"
     assert_equal 1, @provider.requests.length
   end
 
   def test_auto_run_does_not_request_explanation
     def @service.assess(**) = {level: :green, confidence: 0.99, read_only: "read_only_supported", read_only_confidence: 0.95 }
-    terminal = RailsAI::Terminal.new(input: TTY.new(""), output: StringIO.new)
+    terminal = RobotOnRails::Terminal.new(input: TTY.new(""), output: StringIO.new)
     assert_equal @args, terminal.review(name: "execute_ruby", arguments: @args, environment: "development", appetite: 1, risk: @risk)
     assert_empty @provider.requests
   end
 
   def test_explanation_failure_preserves_review_and_is_not_retried
-    provider = FakeProvider.new(RailsAI::Error.new("service unavailable"))
-    explainer = RailsAI::Providers::RiskExplanation.new(@config, provider: provider)
-    risk = RailsAI::Risk.new(system_one: @service, explainer: explainer, evidence: ->(_) { {"status" => "observed"} })
+    provider = FakeProvider.new(RobotOnRails::Error.new("service unavailable"))
+    explainer = RobotOnRails::Providers::RiskExplanation.new(@config, provider: provider)
+    risk = RobotOnRails::Risk.new(system_one: @service, explainer: explainer, evidence: ->(_) { {"status" => "observed"} })
     assessment = risk.assess("execute_ruby", @args)
     assert_includes risk.explain_review, "Explanation unavailable"
     assert_equal :green, assessment.level
@@ -68,7 +68,7 @@ class RiskExplanationTest < Minitest::Test
 
   def test_invalid_explanation_is_rejected
     provider = FakeProvider.new({"calls" => [{"name" => "execute_ruby", "arguments" => {}}]})
-    explainer = RailsAI::Providers::RiskExplanation.new(@config, provider: provider)
-    assert_raises(RailsAI::Error) { explainer.explain({}) }
+    explainer = RobotOnRails::Providers::RiskExplanation.new(@config, provider: provider)
+    assert_raises(RobotOnRails::Error) { explainer.explain({}) }
   end
 end

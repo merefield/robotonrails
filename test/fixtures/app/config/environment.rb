@@ -3,7 +3,7 @@ require "rails"
 require "active_record"
 require "logger"
 
-module RailsAITestApp
+module RobotOnRailsTestApp
   class Application < Rails::Application
     config.root = File.expand_path("..", __dir__)
     config.eager_load = true
@@ -20,5 +20,5 @@ ActiveRecord::Schema.define do
 end
 
 require File.expand_path("../plugins/demo/plugin", __dir__)
-RailsAITestApp::Application.initialize!
+RobotOnRailsTestApp::Application.initialize!
 puts "Fixture booted"

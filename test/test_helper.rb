@@ -5,7 +5,7 @@ require "minitest/autorun"
 require "tmpdir"
 require "fileutils"
 require "stringio"
-require "railsai"
+require "robotonrails"
 
 class FakeTerminal
   attr_reader :messages, :approvals
@@ -15,6 +15,7 @@ class FakeTerminal
     @approve_result = false
   end
   def say(text) = @messages << text
+  def assistant(text) = @messages << text
   def status(text) = @messages << text
   def result(value) = @messages << value
   def review(**args)

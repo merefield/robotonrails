@@ -2,7 +2,7 @@
 require "rbconfig"
 require "thread"
 
-module RailsAI
+module RobotOnRails
   class Capture
     LIMIT = 16 * 1024
 
@@ -42,9 +42,9 @@ module RailsAI
       @responses, response_write = IO.pipe
       output_read, output_write = IO.pipe
       @capture.clear
-      env = { "RAILS_ENV" => @config.environment, "RAILSAI_APP" => @config.root,
-              "OPENAI_API_KEY" => nil, "RAILSAI_MODEL" => nil,
-              "SYSTEM_ONE_KEY" => nil, "RAILSAI_SYSTEM_ONE_KEY" => nil }
+      env = { "RAILS_ENV" => @config.environment, "ROBOTONRAILS_APP" => @config.root,
+              "OPENAI_API_KEY" => nil, "ROBOTONRAILS_MODEL" => nil,
+              "SYSTEM_ONE_KEY" => nil, "ROBOTONRAILS_SYSTEM_ONE_KEY" => nil, "RAILSAI_SYSTEM_ONE_KEY" => nil }
       gemfile = File.join(@config.root, "Gemfile")
       env["BUNDLE_GEMFILE"] = gemfile if File.file?(gemfile)
       @pid = Process.spawn(env, RbConfig.ruby, @script, in: input_read, out: output_write, err: output_write,

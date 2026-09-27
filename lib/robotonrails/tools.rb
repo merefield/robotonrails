@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-module RailsAI
+module RobotOnRails
   module Tools
     # One provider-neutral contract, also validated before dispatch to the worker.
     DEFINITIONS = {

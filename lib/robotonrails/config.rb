@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 require "uri"
-module RailsAI
+module RobotOnRails
   class Config
     DEFAULT_LLM_URL = "https://api.openai.com/v1/responses"
     REASONING_EFFORTS = %w[default none minimal low medium high xhigh max].freeze
@@ -11,27 +11,32 @@ module RailsAI
     attr_writer :api_key, :system_one_key
 
     def initialize(env = ENV, store: SettingsStore.new(env), service: SecretService.new(env), load_saved: true)
+      env = env.to_h.dup
+      env.keys.grep(/\ARAILSAI_/).each do |key|
+        canonical = key.sub("RAILSAI_", "ROBOTONRAILS_")
+        env[canonical] = env[key] unless env.key?(canonical)
+      end
       saved = load_saved ? store.settings : {}
       @credentials = Credentials.new(store, saved, service: service)
       @saved_keys_enabled = saved["system_one_enabled"] != false
-      @root = env.fetch("RAILSAI_APP", saved.fetch("root", Dir.pwd))
+      @root = env.fetch("ROBOTONRAILS_APP", saved.fetch("root", Dir.pwd))
       @environment = env.fetch("RAILS_ENV", saved.fetch("environment", "development"))
-      @model = env.fetch("RAILSAI_MODEL", saved.fetch("model", "gpt-4.1"))
+      @model = env.fetch("ROBOTONRAILS_MODEL", saved.fetch("model", "gpt-4.1"))
       @api_key = env["OPENAI_API_KEY"] if env.key?("OPENAI_API_KEY")
       @timeout = 30
       @boot_timeout = 120
       @max_rounds = 12
       @inspect_only = false
-      @risk_appetite = Integer(env.fetch("RAILSAI_RISK_APPETITE", saved.fetch("risk_appetite", 1)))
-      @system_one_key = env["RAILSAI_SYSTEM_ONE_KEY"] || env["SYSTEM_ONE_KEY"] if env.key?("RAILSAI_SYSTEM_ONE_KEY") || env.key?("SYSTEM_ONE_KEY")
-      @system_one_url = env["RAILSAI_SYSTEM_ONE_URL"] || env["SYSTEM_ONE_URL"] || env["SYSTEM_ONE_API"] || (@saved_keys_enabled && saved["system_one_url"]) || nil
-      @system_one_model = env["RAILSAI_SYSTEM_ONE_MODEL"] || env["SYSTEM_ONE_MODEL"] || (@saved_keys_enabled && saved["system_one_model"]) || nil
+      @risk_appetite = Integer(env.fetch("ROBOTONRAILS_RISK_APPETITE", saved.fetch("risk_appetite", 1)))
+      @system_one_key = env["ROBOTONRAILS_SYSTEM_ONE_KEY"] || env["SYSTEM_ONE_KEY"] if env.key?("ROBOTONRAILS_SYSTEM_ONE_KEY") || env.key?("SYSTEM_ONE_KEY")
+      @system_one_url = env["ROBOTONRAILS_SYSTEM_ONE_URL"] || env["SYSTEM_ONE_URL"] || env["SYSTEM_ONE_API"] || (@saved_keys_enabled && saved["system_one_url"]) || nil
+      @system_one_model = env["ROBOTONRAILS_SYSTEM_ONE_MODEL"] || env["SYSTEM_ONE_MODEL"] || (@saved_keys_enabled && saved["system_one_model"]) || nil
       @risk_confidence = 0.8
       @read_only_confidence = 0.8
-      @llm_url = env.fetch("RAILSAI_LLM_URL", saved.fetch("llm_url", DEFAULT_LLM_URL))
-      @reasoning_effort = env.fetch("RAILSAI_REASONING_EFFORT", saved.fetch("reasoning_effort", "default"))
-      @max_output_tokens = Integer(env.fetch("RAILSAI_MAX_OUTPUT_TOKENS", saved.fetch("max_output_tokens", 4096)))
-      @api_timeout = Integer(env.fetch("RAILSAI_API_TIMEOUT", saved.fetch("api_timeout", 120)))
+      @llm_url = env.fetch("ROBOTONRAILS_LLM_URL", saved.fetch("llm_url", DEFAULT_LLM_URL))
+      @reasoning_effort = env.fetch("ROBOTONRAILS_REASONING_EFFORT", saved.fetch("reasoning_effort", "default"))
+      @max_output_tokens = Integer(env.fetch("ROBOTONRAILS_MAX_OUTPUT_TOKENS", saved.fetch("max_output_tokens", 4096)))
+      @api_timeout = Integer(env.fetch("ROBOTONRAILS_API_TIMEOUT", saved.fetch("api_timeout", 120)))
     end
 
     def api_key
@@ -76,7 +81,7 @@ module RailsAI
       validate_generation!
       @root = File.realpath(root)
       raise Error, "No config/environment.rb in #{root}. Use --app PATH." unless File.file?(File.join(root, "config/environment.rb"))
-      raise Error, "Run railsai setup or set OPENAI_API_KEY before starting a conversation." if api && api_key.to_s.strip.empty?
+      raise Error, "Run robotonrails setup or set OPENAI_API_KEY before starting a conversation." if api && api_key.to_s.strip.empty?
       raise Error, "Model must not be empty." if model.to_s.strip.empty?
       raise Error, "Risk appetite must be 0, 1 or 2." unless [0, 1, 2].include?(risk_appetite)
       raise Error, "Read-only confidence must be between 0 and 1." unless read_only_confidence.finite? && read_only_confidence.between?(0, 1)

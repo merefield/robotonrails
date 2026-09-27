@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.17
+
+- Rename the gem, command and Ruby namespace to RobotOnRails (`robotonrails`).
+- Preserve compatibility with existing RailsAI configuration and environment variables.
+- Set the MIT copyright holder to merefield and add public repository metadata.
+
+## 0.1.16
+
+- Put exact proposed Ruby first, with whitespace, syntax colours and multiline line numbers.
+- Use compact semantic risk labels, short review reasons, clear action prompts and distinct result/error formatting.
+- Reduce startup metadata; keep full settings in /status and assessment details in d or verbose output.
+- Render common assistant Markdown and clear transient terminal progress; preserve plain redirected/NO_COLOR output and control-character escaping.
+- Preserve all execution and confirmation policy.
+
 ## 0.1.15
 
 - Ask both assessors for a reasonable operational expectation of read-only behavior, not exhaustive downstream proof.

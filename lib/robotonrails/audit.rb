@@ -2,7 +2,7 @@
 require "time"
 require "digest"
 
-module RailsAI
+module RobotOnRails
   # Opt-in action metadata only: no code, record output, prompts or credentials.
   class Audit
     def initialize(path)

@@ -4,7 +4,7 @@ require_relative "test_helper"
 class EvidenceQualityTest < Minitest::Test
   def fragment(source)
     lines = source.lines.map.with_index(1) { |line, n| "#{n}: #{line.chomp}" }
-    RailsAI::MethodEvidence.allocate.send(:source_fragment, lines)
+    RobotOnRails::MethodEvidence.allocate.send(:source_fragment, lines)
   end
 
   def test_generated_declaration_does_not_include_neighbouring_documentation
@@ -28,7 +28,7 @@ class EvidenceQualityTest < Minitest::Test
   end
 
   def test_factual_signals_ignore_warning_words_in_comments_and_strings
-    risk = RailsAI::Risk.new
+    risk = RobotOnRails::Risk.new
     facts = risk.factual_signals('User.count # destroy_all File')
     assert facts["parseable"]
     assert_empty facts["matched_method_names"]

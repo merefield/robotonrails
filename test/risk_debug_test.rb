@@ -7,16 +7,16 @@ class RiskDebugTest < Minitest::Test
   end
 
   def setup
-    config = RailsAI::Config.new({"SYSTEM_ONE_KEY" => "saved-secret-key", "SYSTEM_ONE_URL" => "https://example.test/risk", "SYSTEM_ONE_MODEL" => "jev-latest"}, load_saved: false)
-    @redactor = RailsAI::Redactor.new({}, secrets: ["saved-secret-key"])
+    config = RobotOnRails::Config.new({"SYSTEM_ONE_KEY" => "saved-secret-key", "SYSTEM_ONE_URL" => "https://example.test/risk", "SYSTEM_ONE_MODEL" => "jev-latest"}, load_saved: false)
+    @redactor = RobotOnRails::Redactor.new({}, secrets: ["saved-secret-key"])
     @requests = []
     @answer = {"type" => "choice", "choice" => "green", "confidence" => 0.56,
       "probabilities" => {"green" => 0.7, "amber" => 0.28, "red" => 0.02}}
-    service = RailsAI::Providers::SystemOne.new(config, redactor: @redactor, transport: ->(payload) {
+    service = RobotOnRails::Providers::SystemOne.new(config, redactor: @redactor, transport: ->(payload) {
       @requests << payload
       {"model" => "jev-resolved-version", "answers" => {"risk" => @answer, "read_only" => {"type" => "choice", "choice" => "insufficient_evidence", "confidence" => 0.9, "probabilities" => {"read_only_supported" => 0.1, "changes_or_external_effects" => 0.0, "insufficient_evidence" => 0.9}}}, "usage" => {"input_tokens" => 42}}
     })
-    @risk = RailsAI::Risk.new(system_one: service, redactor: @redactor,
+    @risk = RobotOnRails::Risk.new(system_one: service, redactor: @redactor,
       evidence: ->(code) { {"status" => "observed", "code" => code, "source_excerpt" => "saved-secret-key"} })
     @args = {"code" => "User.count", "purpose" => "Count users"}
   end
@@ -41,7 +41,7 @@ class RiskDebugTest < Minitest::Test
 
   def test_details_at_review_do_not_reassess_or_approve
     output = StringIO.new
-    terminal = RailsAI::Terminal.new(input: TTY.new("d\nd\nn\n"), output: output)
+    terminal = RobotOnRails::Terminal.new(input: TTY.new("d\nd\nn\n"), output: output)
     assert_nil terminal.review(name: "execute_ruby", arguments: @args, environment: "development", appetite: 1, risk: @risk)
     assert_equal 1, @requests.length
     assert_includes output.string, "confidence_threshold"
@@ -54,20 +54,20 @@ class RiskDebugTest < Minitest::Test
       @risk.export_debug(path)
       assert_equal 0o600, File.stat(path).mode & 0o777
       assert_equal JSON.parse(@risk.debug_json), JSON.parse(File.read(path))
-      assert_raises(RailsAI::Error) { @risk.export_debug(path) }
+      assert_raises(RobotOnRails::Error) { @risk.export_debug(path) }
       link = File.join(dir, "link.json")
       File.symlink(path, link)
-      assert_raises(RailsAI::Error) { @risk.export_debug(link) }
+      assert_raises(RobotOnRails::Error) { @risk.export_debug(link) }
     end
   end
 
   def test_new_assessment_replaces_previous_provider_details_on_evidence_failure
     calls = 0
-    evidence = ->(_) { calls += 1; raise RailsAI::Error, "evidence unavailable" if calls > 1; {"status" => "observed"} }
+    evidence = ->(_) { calls += 1; raise RobotOnRails::Error, "evidence unavailable" if calls > 1; {"status" => "observed"} }
     service = Object.new
     def service.assess(**) = {level: :green, confidence: 0.95, read_only: "read_only_supported", read_only_confidence: 0.95 }
     def service.last_debug = {"request" => "old-request"}
-    risk = RailsAI::Risk.new(system_one: service, evidence: evidence)
+    risk = RobotOnRails::Risk.new(system_one: service, evidence: evidence)
     risk.assess("execute_ruby", @args)
     risk.assess("execute_ruby", @args.merge("code" => "Topic.count"))
     report = JSON.parse(risk.debug_json)

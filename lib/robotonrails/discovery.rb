@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require "digest"
 
-module RailsAI
+module RobotOnRails
   class Discovery
     attr_reader :roots
 

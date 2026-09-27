@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require "ripper"
 
-module RailsAI
+module RobotOnRails
   # Reflection only: never evaluate the candidate, invoke its methods, or autoload constants.
   class MethodEvidence
     def initialize(roots)
