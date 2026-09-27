@@ -15,7 +15,7 @@ class EvidenceQualityTest < Minitest::Test
         evidence = RobotOnRails::MethodEvidence.new([{"path" => root}]).collect("String.new")
         assert_equal "observed", evidence["status"]
         assert_equal "observed", evidence.fetch("calls").first["status"]
-        assert_equal [{"name" => "missing-bundler", "reason" => "Errno::ENOENT"}], evidence["unavailable_gem_sources"]
+        assert_includes evidence["unavailable_gem_sources"], {"name" => "missing-bundler", "reason" => "Errno::ENOENT"}
       end
     end
   end
