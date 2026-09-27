@@ -6,7 +6,16 @@ module RobotOnRails
   class MethodEvidence
     def initialize(roots)
       @roots = roots.map { |root| root.fetch("path") }
-      @gem_roots = Gem.loaded_specs.values.to_h { |spec| [File.realpath(spec.full_gem_path), spec.name] }
+      @gem_roots = {}
+      @unavailable_gem_sources = []
+      Gem.loaded_specs.each_value do |spec|
+        begin
+          @gem_roots[File.realpath(spec.full_gem_path)] = spec.name
+        rescue Errno::ENOENT, Errno::ENOTDIR, Errno::EACCES, Errno::ELOOP => error
+          # Default gems can be loaded even when their advertised source tree is absent.
+          @unavailable_gem_sources << { "name" => spec.name, "reason" => error.class.name }
+        end
+      end
       @source = SourceIndex.new((@roots + @gem_roots.keys).uniq.each_with_index.map { |path, i| { "id" => i.to_s, "path" => path } })
       @source_roots = (@roots + @gem_roots.keys).uniq
     end
@@ -39,13 +48,15 @@ module RobotOnRails
         break if JSON.generate(calls + [entry]).bytesize > 28_000
         calls << entry
       end
-      { "status" => "observed", "calls" => calls, "truncated" => nodes.length > calls.length,
+      report = { "status" => "observed", "calls" => calls, "truncated" => nodes.length > calls.length,
         "limitations" => [
           "Constant receivers are resolved directly. Supported ActiveRecord chains have conditional static receiver inference; other dynamic receivers remain unresolved. Inference does not execute arguments or prove effects.",
           "Source origin is not verification against pristine gem contents. Native and generated methods may lack readable source.",
           "Source entries state whether they contain a complete method, a declaration only, or a truncated excerpt. Downstream behavior, callbacks, scopes and database functions are not proven safe.",
           "No candidate Ruby or scope was executed. Observations are a current worker snapshot, not a security guarantee."
         ] }
+      report["unavailable_gem_sources"] = @unavailable_gem_sources unless @unavailable_gem_sources.empty?
+      report
     end
 
     private

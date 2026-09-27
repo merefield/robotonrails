@@ -7,6 +7,19 @@ class EvidenceQualityTest < Minitest::Test
     RobotOnRails::MethodEvidence.allocate.send(:source_fragment, lines)
   end
 
+  def test_missing_loaded_gem_directory_does_not_abort_evidence
+    Dir.mktmpdir do |root|
+      spec = Struct.new(:name, :full_gem_path).new("missing-bundler", File.join(root, "missing-bundler"))
+      specs = Gem.loaded_specs.merge("missing-bundler" => spec)
+      Gem.stub(:loaded_specs, specs) do
+        evidence = RobotOnRails::MethodEvidence.new([{"path" => root}]).collect("String.new")
+        assert_equal "observed", evidence["status"]
+        assert_equal "observed", evidence.fetch("calls").first["status"]
+        assert_equal [{"name" => "missing-bundler", "reason" => "Errno::ENOENT"}], evidence["unavailable_gem_sources"]
+      end
+    end
+  end
+
   def test_generated_declaration_does_not_include_neighbouring_documentation
     result = fragment("delegate(*QUERYING_METHODS, to: :all)\n# Execute custom SQL\ndef find_by_sql(sql)\nend\n")
     assert_equal "declaration_only", result["source_extent"]

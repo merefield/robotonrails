@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Continue runtime evidence collection when a loaded gem advertises a missing or inaccessible source directory, reporting the unavailable source explicitly. Fixes Ruby 3.3 CI with a missing default Bundler directory.
+
 ## 0.1.18
 
 - Use RobotOnRails settings, environment variables and credential-store namespace exclusively; remove legacy compatibility paths.
