@@ -27,20 +27,42 @@ module RobotOnRails
       end
     end
 
+    # Track the actual Pry evaluating this request, including nested sessions and
+    # `cd` bindings. Always restore the previous instance, even after an exception.
+    module PryEvaluation
+      def evaluate_ruby(code)
+        previous = Thread.current[:robotonrails_pry]
+        Thread.current[:robotonrails_pry] = self
+        super
+      ensure
+        Thread.current[:robotonrails_pry] = previous
+      end
+    end
+
     class InputHandoff
+      def editor
+        if (pry = Console.current_pry)
+          pry.input
+        elsif defined?(IRB::RelineInputMethod) && Console.irb_context&.io.is_a?(IRB::RelineInputMethod)
+          Reline if defined?(Reline)
+        end
+      end
+
       def available?
-        defined?(IRB::RelineInputMethod) && Console.irb_context&.io.is_a?(IRB::RelineInputMethod) &&
-          defined?(Reline) && Reline.respond_to?(:pre_input_hook=) && Reline.respond_to?(:insert_text)
+        input = editor
+        input && [:pre_input_hook, :pre_input_hook=, :insert_text].all? { |method| input.respond_to?(method) }
       end
 
       def queue(code)
         return false unless available?
+        input = editor
         # Restore the caller's hook before inserting. Never inject Enter or evaluate.
-        previous = Reline.pre_input_hook
-        Reline.pre_input_hook = proc do
-          Reline.pre_input_hook = previous
+        previous = input.pre_input_hook
+        input.pre_input_hook = proc do
+          input.pre_input_hook = previous
           previous&.call
-          Reline.insert_text(code)
+          input.insert_text(code)
+          input.redisplay if input.respond_to?(:redisplay)
         end
         true
       end
@@ -139,11 +161,23 @@ module RobotOnRails
         IRB.conf[:MAIN_CONTEXT] if defined?(IRB) && IRB.respond_to?(:conf)
       end
 
+      def current_pry
+        Thread.current[:robotonrails_pry]
+      end
+
       def current_binding
-        irb_context&.workspace&.binding
+        current_pry ? current_pry.current_binding : irb_context&.workspace&.binding
+      end
+
+      def install_pry!
+        # pry-rails may load Pry in a later Rails console hook. Load an already
+        # activated optional gem now so tracking is installed before the first eval.
+        require "pry" if !defined?(Pry) && Gem.loaded_specs.key?("pry")
+        Pry.prepend(PryEvaluation) if defined?(Pry) && !Pry.ancestors.include?(PryEvaluation)
       end
 
       def install!(receiver = TOPLEVEL_BINDING.receiver, output: $stderr)
+        install_pry!
         return true if receiver.singleton_class.ancestors.include?(Helper)
         if receiver.respond_to?(:rai, true)
           output.puts("RobotOnRails: existing rai method preserved. Use RobotOnRails::Console.ask instead.")

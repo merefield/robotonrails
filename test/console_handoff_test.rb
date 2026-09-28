@@ -61,7 +61,7 @@ class ConsoleHandoffTest < Minitest::Test
       require "reline"
       require "ripper"
       handoff = RobotOnRails::Console::InputHandoff.new
-      def handoff.available? = true
+      def handoff.editor = Reline
       previous = proc { }
       Reline.pre_input_hook = previous
       handoff.queue(#{code.dump})

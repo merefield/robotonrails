@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.20
+
+- Support Pry’s active binding and editable Readline/Reline input handoff for `rai`, including nested console contexts.
+- Preserve risk thresholds and require native submission for review-required commands; no automatic execution during prefill.
+
 ## 0.1.19
 
 - Add opt-in `rai` Rails console helper with session history and current/explicit binding support.

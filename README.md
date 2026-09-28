@@ -458,9 +458,9 @@ RobotOnRails::Console.install!
 The helper never overwrites an existing `rai` method. If there is a conflict,
 use `RobotOnRails::Console.ask("request")` instead.
 
-Low-risk proposals execute directly using the current IRB binding, subject to
+Low-risk proposals execute directly using the current IRB or Pry binding, subject to
 risk appetite and the existing evidence/confidence policy. Proposals requiring
-review display their risk and explanation, then populate the next IRB/Reline
+review display their risk and explanation, then populate the next IRB or Pry
 input with the exact Ruby. **Enter submits it as native console Ruby; edit it or
 clear/cancel the input as you normally would. There is no y/e/d menu or additional
 RobotOnRails confirmation for native submissions**, including RED/production.
@@ -468,8 +468,8 @@ Edited native commands are not reassessed by the helper. Nothing is executed by
 prefilling input. This handoff is recorded as proposed, with unknown outcome;
 the eventual native result is not automatically added to the assistant's history.
 
-Input prefill requires IRB with Reline, an interactive terminal, and the current
-console binding. Otherwise the proposal is displayed for manual use and is not
+Input prefill requires IRB with Reline or Pry with Readline/Reline, an interactive
+terminal, and the current console binding. Otherwise the proposal is displayed for manual use and is not
 executed. The standalone `robotonrails` CLI keeps its existing approval prompts.
 
 Successive `rai` calls retain user requests, commands and tool results. Use an
@@ -480,11 +480,11 @@ draft = User.new(username: "example")
 rai "explain this unsaved draft", context: binding
 ```
 
-A binding different from the active IRB workspace disables native input prefill
+A binding different from the active console workspace disables native input prefill
 because the same Ruby could mean something different there. `rai :reset` clears
 conversation history and the helper's binding; it does not undo application
 changes or erase the console's local variables. Calls return nil to keep internal
-session objects out of IRB's inspection output.
+session objects out of the console's inspection output.
 
 Execution shares the Rails console process: there is no subprocess isolation or
 forced worker timeout. Interrupts return control where Ruby permits interruption;
