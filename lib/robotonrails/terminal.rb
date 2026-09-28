@@ -77,12 +77,12 @@ module RobotOnRails
       end
     end
 
-    def prompt(label = "you> ")
+    def prompt(label = "rai › ")
       clear_progress
       if @input.equal?($stdin) && @output.equal?($stdout) && @input.tty? && @output.tty?
         begin
           require "reline"
-          return Reline.readline(label, label == "you> ")
+          return Reline.readline(label, label == "rai › ")
         rescue LoadError
           # Plain Ruby installations can still use the CLI without a line editor.
         end

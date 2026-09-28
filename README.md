@@ -6,8 +6,8 @@ An English-first terminal assistant for your Rails application and its installed
 $ bundle exec robotonrails
 
 RobotOnRails 0.1.19 · myapp / development
-you> Which plugins extend User?
-you> Show me five accounts affected by that workflow.
+rai › Which plugins extend User?
+rai › Show me five accounts affected by that workflow.
 
 ● AMBER — Arbitrary Ruby has application permissions…
 execute_ruby · development
