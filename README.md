@@ -491,3 +491,25 @@ forced worker timeout. Interrupts return control where Ruby permits interruption
 changes may already have occurred. Output from puts, warnings and logs remains
 on the console; returned values enter the redacted tool history. No local variable
 values are automatically enumerated or sent; proposed Ruby must access them.
+
+### Removing the console helper
+
+To remove `rai` from the current console session and clear its assistant history:
+
+```ruby
+RobotOnRails::Console.ask(:reset)
+singleton_class.send(:undef_method, :rai)
+```
+
+The gem remains loaded until the console exits; application changes are not undone.
+Restart the console to enable the helper again.
+
+To prevent automatic loading in future consoles, change the Gemfile entry to:
+
+```ruby
+gem "robotonrails", path: File.expand_path("~/projects/robotonrails"), require: false
+```
+
+Remove any explicit console-initializer call to `RobotOnRails::Console.install!`
+or `require "robotonrails/console"` as well, then restart the console. The standalone
+`robotonrails` CLI remains available.
