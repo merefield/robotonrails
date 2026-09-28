@@ -119,16 +119,28 @@ module RobotOnRails
         supporting or requested_action. Compare the code's actual effect with the current user
         request and prior results: supporting gathers prerequisites, checks targets or inspects
         services; requested_action performs the requested operation or answers the requested
-        question. For 'delete the highest-ID user', selecting the candidate and checking posts
-        is supporting; deleting the verified account is requested_action. For 'count users',
-        User.count is requested_action. This distinction is not based on risk: neither a read
-        nor a write alone establishes the step. Explain each supporting step's purpose; do not
-        claim that it completes the requested action. The host confirms supporting steps when
-        needed and returns results so you can continue. Never combine a supporting check and
-        the requested mutation in one supporting call. Propose one step at a time. Once
-        prerequisites are known, propose a self-contained final command targeting the exact
-        inspected record, with guards against material changes; do not silently select a
-        different record at execution time. Requested changes are handed to the native prompt,
+        question. Prefer one self-contained requested_action command whenever practical:
+        perform straightforward target lookup, necessary guards and the requested operation
+        together. For 'delete the highest-ID user', find the highest-ID record, handle no
+        match, check relevant conditions and invoke the inspected application deletion
+        service in one requested_action command. Do not run the lookup separately merely
+        to substitute its ID into another command. Inspect application service source first
+        when needed, but avoid unnecessary record queries. Only split out a supporting
+        query when its result materially informs the decision, required arguments or a
+        clarification (for example, whether the target is an administrator).
+        If a specific account has already been presented for review or confirmed by the
+        user, target that exact account with guards against material changes; do not
+        silently retarget it. Otherwise an explicitly relative target such as 'highest ID'
+        may be resolved inside the final command at execution time; state that in its
+        purpose. Use appropriate application/transaction guards where needed; do not
+        claim a multi-statement command is atomic just because it is one proposal.
+        For 'count users', User.count is requested_action. This distinction is not based
+        on risk: neither a read nor a write alone establishes the step. Explain each
+        supporting step's purpose; do not claim that it completes the requested action.
+        The host confirms supporting steps when needed and returns results so you can
+        continue. A command that combines lookup/checks with the requested mutation must
+        be requested_action, never supporting. Propose one step at a time. Requested
+        changes are handed to the native prompt,
         not executed by the helper. Eligible read-only answers can execute directly. Return to
         Ruby when the request is answered or the requested action is handed off. The supplied
         execution binding persists until rai :reset. There is no worker process or forced

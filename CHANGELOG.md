@@ -2,6 +2,7 @@
 
 ## 0.1.21
 
+- Prefer self-contained final commands combining straightforward target lookup, guards and the requested operation; split checks only when their results inform a decision.
 - Keep supporting console steps in the conversation, with inline approval/editing when risk requires review.
 - Hand off the requested action to the native prompt; only eligible read-only answers execute directly.
 - Distinguish supporting work from the requested action in console tool proposals and preserve results for continuation.

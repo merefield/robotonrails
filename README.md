@@ -465,9 +465,12 @@ inline execute/edit/details/cancel prompt. Approved results return to the
 assistant, which continues the original request. Cancelling or an execution
 error stops the turn.
 
-For example, when asked to delete the highest-ID user, account and post checks
-are supporting steps. The actual deletion is the requested action. The assistant
-is instructed to target the exact inspected account with checks against changes.
+Prefer one self-contained final command: for example, find the highest-ID user,
+check necessary conditions, and invoke the application's deletion service. A
+separate supporting query is useful only when its result materially informs the
+decision or requires clarification. Relative targets can be resolved at execution
+time; an account already presented for review or confirmed must not silently be
+replaced by another target. One command is not necessarily one transaction.
 The step label never grants permission or changes the risk assessment.
 
 Requested changes always go to native review, even at a permissive risk appetite.
