@@ -5,7 +5,7 @@ An English-first terminal assistant for your Rails application and its installed
 ```text
 $ bundle exec robotonrails
 
-RobotOnRails 0.1.22 · myapp / development
+RobotOnRails 0.1.23 · myapp / development
 rai › Which plugins extend User?
 rai › Show me five accounts affected by that workflow.
 
@@ -38,7 +38,7 @@ bundle exec robotonrails
 
 No initializer, database migration, or web route is installed. `require: false` keeps RobotOnRails out of the web application's normal boot path; the CLI loads it itself.
 
-Alternatively build and install the gem locally with `gem build robotonrails.gemspec` and `gem install ./robotonrails-0.1.22.gem`, then reference `gem "robotonrails", "~> 0.1", require: false` in the application's bundle. This project has not been published to RubyGems.
+Alternatively build and install the gem locally with `gem build robotonrails.gemspec` and `gem install ./robotonrails-0.1.23.gem`, then reference `gem "robotonrails", "~> 0.1", require: false` in the application's bundle. This project has not been published to RubyGems.
 
 ## Setup wizard
 
@@ -481,6 +481,11 @@ that preparation or external effects were rolled back. These are generation
 instructions, not a guarantee about every generated command; review the actual Ruby.
 The final handoff uses one purpose line and one risk conclusion; extra prose is
 reserved for material context and source citations.
+Inspection is targeted rather than an exhaustive source audit. Progress shows the
+current round and inspection tool. The final model round is reserved for an answer,
+the requested command, or a specific explanation of missing information; additional
+inspection and supporting Ruby are blocked in that round. Risk checks still apply.
+Earlier results remain in conversation history if the budget is exhausted.
 
 Requested changes always go to native review, even at a permissive risk appetite.
 Requested reads that need review also use native handoff. These final proposals

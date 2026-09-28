@@ -21,10 +21,14 @@ module RobotOnRails
       @risk.request = text
       @events << { "kind" => "user", "text" => @redactor.text(text) }
       repeated = Hash.new(0)
-      @terminal.status("Thinking…")
-      @config.max_rounds.times do
+      completed = Hash.new(0)
+      @config.max_rounds.times do |round|
+        final_round = round == @config.max_rounds - 1
+        @terminal.status("Thinking… #{round + 1}/#{@config.max_rounds}#{final_round ? ' · preparing conclusion' : ''}")
         raise LimitError, "Conversation reached its size limit. Use /reset to start fresh." if JSON.generate(events).bytesize > MAX_HISTORY_BYTES
-        response = @provider.complete(events: events, instructions: instructions, tools: Tools.definitions(inspect_only: @config.inspect_only, system_one: @config.system_one_enabled?, console: console?))
+        tools = Tools.definitions(inspect_only: @config.inspect_only, system_one: @config.system_one_enabled?, console: console?)
+        tools = tools.select { |tool| tool[:name] == "execute_ruby" } if final_round
+        response = @provider.complete(events: events, instructions: instructions + round_instructions(round), tools: tools)
         @events << response
         response.fetch("usage", {}).each { |key, value| @usage[key] += value if @usage.key?(key) && value.is_a?(Numeric) }
         @terminal.assistant(@redactor.text(response["text"])) unless response["text"].to_s.empty?
@@ -41,10 +45,12 @@ module RobotOnRails
             result = if repeated[signature] > 2
               { "status" => "error", "error" => "Repeated tool call limit reached." }
             else
-              dispatch(call)
+              inspection_progress(call, round) unless call["name"] == "execute_ruby"
+              dispatch(call, final_round: final_round)
             end
             stopped = %w[declined stopped deferred].include?(result["status"]) || (call["name"] == "execute_ruby" && result["status"] != "ok") || repeated[signature] > 2
           end
+          completed[call["name"]] += 1 if result["status"] == "ok"
           deferred ||= result["status"] == "deferred"
           @events << { "kind" => "tool", "id" => call.fetch("id"), "result" => @redactor.call(result) }
         end
@@ -53,7 +59,8 @@ module RobotOnRails
           return
         end
       end
-      raise LimitError, "Reached #{@config.max_rounds} model rounds. Ask a narrower follow-up."
+      summary = completed.map { |name, count| "#{name}: #{count}" }.join(", ")
+      @terminal.say("Round budget reached (#{@config.max_rounds}); completed tools: #{summary.empty? ? 'none' : summary}. Results are retained in this conversation; no further action was attempted.")
     rescue Interrupt
       @worker.stop
       complete_pending_calls("Interrupted. Worker stopped; execution outcome may be unknown. Do not retry without checking.")
@@ -100,7 +107,13 @@ module RobotOnRails
         Risk labels are advisory. Never try to disguise a dangerous action as a less risky operation.
         Prefer bounded queries and explicit fields. Never dump credentials, tokens or whole collections.
         Use application service methods for mutations after inspecting their implementation.
-        Establish the service contract from source and relevant callers: required actor,
+        Keep service inspection targeted: read the entry point and only the permission
+        helper or caller needed to resolve a material uncertainty. Do not recursively audit
+        every callback, association, plugin or downstream method. Runtime risk evidence is
+        collected separately by the host; your task is to propose a correct operation, not
+        prove the entire application safe. Reuse source findings and batch independent
+        inspection calls when possible. Stop inspecting once the relevant contract is clear.
+        Establish the relevant service contract from source and, when needed, a caller: required actor,
         permission checks, options and defaults, affected associations, return values,
         exceptions, callbacks and transaction boundaries. Reuse findings already in history.
         Respect application-enforced restrictions and explain them as application rules.
@@ -176,9 +189,29 @@ module RobotOnRails
       TEXT
     end
 
-    def dispatch(call)
+    def round_instructions(round)
+      remaining = @config.max_rounds - round
+      if remaining == 1
+        "\nFINAL ROUND: No further inspection or supporting steps are available. Use existing evidence to answer or propose the requested action. If material information is missing, explain exactly what is missing and ask one specific question; do not guess or claim execution. If proposing a read, its result will be displayed directly. Do not propose a mutation merely to meet the budget."
+      else
+        "\nRound #{round + 1} of #{@config.max_rounds}; #{remaining - 1} inspection-capable rounds remain including this one, then one final round. Prioritise only information needed to resolve the request. Finish early when enough evidence is available."
+      end
+    end
+
+    def inspection_progress(call, round)
+      args = call["arguments"]
+      location = args.is_a?(Hash) && call["name"] == "read_source" ? args["path"].to_s[0, 160] : nil
+      @terminal.status(@redactor.text("Thinking… #{round + 1}/#{@config.max_rounds} · #{[call['name'], location].compact.join(' ')}"))
+    end
+
+    def dispatch(call, final_round: false)
       name, args = call.values_at("name", "arguments")
       Tools.validate!(name, args)
+      if final_round && (name != "execute_ruby" || args["step"] == "supporting")
+        message = "Inspection budget exhausted; #{name} was not executed. Earlier results remain available. Ask rai to explain the remaining blocker or prepare the final command from that evidence."
+        @terminal.say(message)
+        return { "status" => "stopped", "error" => message }
+      end
       if name == "execute_ruby"
         raise Error, "Console Ruby requires step: supporting or requested_action. Nothing executed." if console? && !args.key?("step")
         return { "status" => "declined", "error" => "Ruby execution is disabled by --inspect-only." } if @config.inspect_only

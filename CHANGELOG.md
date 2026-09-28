@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.23
+
+- Bound service inspection to relevant contracts and give the model its remaining round budget.
+- Reserve the final round for an answer, final proposal or specific blocker; prevent further supporting inspections.
+- Show compact inspection progress and retain completed results when the budget ends.
+
 ## 0.1.22
 
 - Ground mutation proposals in service contracts: actors, permission rules, options, association effects and failure handling.

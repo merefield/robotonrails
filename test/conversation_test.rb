@@ -104,4 +104,50 @@ class ConversationTest < Minitest::Test
     assert_equal "Widget.limit(5).count", @worker.calls.first[1]["code"]
     assert_equal "Widget.limit(5).count", @provider.requests.last[:events].last.dig("result", "executed_code")
   end
+  def test_last_round_reserves_tools_for_a_final_proposal
+    @config.max_rounds = 2
+    @terminal.approve_result = true
+    conversation(action("models", {"query" => "Widget"}), action("execute_ruby", {"code" => "Widget.count", "purpose" => "count"}, "final")).ask("Count widgets")
+    assert_equal ["models", "execute_ruby"], @worker.calls.map(&:first)
+    assert_equal ["execute_ruby"], @provider.requests.last[:tools].map { |tool| tool[:name] }
+    assert_includes @provider.requests.last[:instructions], "FINAL ROUND"
+    assert_equal "ok", @conversation.events.last.dig("result", "status")
+    assert @terminal.messages.any? { |text| text.is_a?(String) && text.include?("Results are retained") }
+  end
+
+  def test_last_round_rejects_further_inspection_even_if_provider_requests_it
+    @config.max_rounds = 1
+    conversation(action("read_source", {"root" => "app", "path" => "app/models/widget.rb", "start_line" => 1})).ask("Inspect widgets")
+    assert_empty @worker.calls
+    assert_equal "stopped", @conversation.events.last.dig("result", "status")
+    assert_includes @conversation.events.last.dig("result", "error"), "not executed"
+  end
+
+  def test_last_round_rejects_supporting_ruby
+    @config.max_rounds = 1
+    @terminal.approve_result = true
+    conversation(action("execute_ruby", {"code" => "Widget.count", "purpose" => "check", "step" => "supporting"})).ask("Delete widget")
+    assert_empty @worker.calls
+    assert_empty @terminal.approvals
+    assert_equal "stopped", @conversation.events.last.dig("result", "status")
+  end
+
+  def test_inspect_only_final_round_can_explain_a_blocker_without_tools
+    @config.max_rounds = 1
+    @config.inspect_only = true
+    conversation.ask("What remains unknown?")
+    assert_empty @provider.requests.last[:tools]
+    assert_empty @worker.calls
+    assert_equal "Done.", @terminal.messages.last
+  end
+
+  def test_budget_is_not_extended_and_progress_identifies_source_reads
+    @config.max_rounds = 2
+    conversation(action("read_source", {"root" => "app", "path" => "app/models/widget.rb", "start_line" => 1})).ask("Inspect widgets")
+    assert_equal 2, @provider.requests.size
+    assert @terminal.messages.any? { |text| text.include?("1/2 · read_source app/models/widget.rb") }
+    assert_includes @provider.requests.first[:instructions], "Round 1 of 2"
+    assert_equal "assistant", @conversation.events.last["kind"]
+  end
+
 end
