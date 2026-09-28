@@ -94,10 +94,10 @@ module RobotOnRails
           unless queued
             ruby_code(arguments.fetch("code"))
           end
-          traffic_light(assessment, detail: "Review in console · not executed")
-          say(explanation) if explanation
+          conclusion = ["Review in console · not executed", explanation].compact.reject(&:empty?).join(" · ")
+          traffic_light(assessment, detail: conclusion)
           say(queued ?
-            "Edit the next input; Enter executes, Ctrl-C cancels. Native edits/results stay outside rai assessment and history." :
+            "Edit below · Enter executes · Ctrl-C cancels. Native edits/results stay outside rai assessment and history." :
             "Input prefill unavailable for this console or binding. Nothing executed; copy Ruby into the appropriate console context to run it.")
           raise DeferredExecution, "Ruby proposed for native console review; #{queued ? 'queued in input' : 'displayed only'}. It may be edited or cancelled. Execution and result are unknown."
         end

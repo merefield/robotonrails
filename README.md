@@ -5,7 +5,7 @@ An English-first terminal assistant for your Rails application and its installed
 ```text
 $ bundle exec robotonrails
 
-RobotOnRails 0.1.21 · myapp / development
+RobotOnRails 0.1.22 · myapp / development
 rai › Which plugins extend User?
 rai › Show me five accounts affected by that workflow.
 
@@ -38,7 +38,7 @@ bundle exec robotonrails
 
 No initializer, database migration, or web route is installed. `require: false` keeps RobotOnRails out of the web application's normal boot path; the CLI loads it itself.
 
-Alternatively build and install the gem locally with `gem build robotonrails.gemspec` and `gem install ./robotonrails-0.1.21.gem`, then reference `gem "robotonrails", "~> 0.1", require: false` in the application's bundle. This project has not been published to RubyGems.
+Alternatively build and install the gem locally with `gem build robotonrails.gemspec` and `gem install ./robotonrails-0.1.22.gem`, then reference `gem "robotonrails", "~> 0.1", require: false` in the application's bundle. This project has not been published to RubyGems.
 
 ## Setup wizard
 
@@ -472,6 +472,15 @@ decision or requires clarification. Relative targets can be resolved at executio
 time; an account already presented for review or confirmed must not silently be
 replaced by another target. One command is not necessarily one transaction.
 The step label never grants permission or changes the risk assessment.
+
+Mutation proposals are guided by the inspected service contract: actor and options,
+application restrictions, affected records, and failure behaviour. They should
+preserve a useful target identity and return available failure details. Application
+rules are distinguished from extra restrictions; a failed deletion must not imply
+that preparation or external effects were rolled back. These are generation
+instructions, not a guarantee about every generated command; review the actual Ruby.
+The final handoff uses one purpose line and one risk conclusion; extra prose is
+reserved for material context and source citations.
 
 Requested changes always go to native review, even at a permissive risk appetite.
 Requested reads that need review also use native handoff. These final proposals

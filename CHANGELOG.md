@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.22
+
+- Ground mutation proposals in service contracts: actors, permission rules, options, association effects and failure handling.
+- Ask for useful target identities and error details without implying failed mutations had no effects.
+- Reduce repeated final-handoff prose and combine the risk explanation into one conclusion.
+
 ## 0.1.21
 
 - Prefer self-contained final commands combining straightforward target lookup, guards and the requested operation; split checks only when their results inform a decision.
