@@ -54,6 +54,20 @@ class ConsoleHandoffTest < Minitest::Test
     assert_nil handoff.code
   end
 
+  def test_final_change_is_handed_off_even_when_appetite_would_allow_it
+    service = Object.new
+    def service.assess(**) = {level: :amber, confidence: 0.99, read_only: "changes_or_external_effects", read_only_confidence: 0.99}
+    risk = RobotOnRails::Risk.new(system_one: service, evidence: ->(_) { {"status" => "observed"} })
+    handoff = Handoff.new
+    terminal = RobotOnRails::Console::ReviewTerminal.new(input: TTY.new, output: TTY.new, handoff: handoff)
+    terminal.handoff_allowed = -> { true }
+    args = {"code" => "Widget.first.update(name: 'new')", "purpose" => "rename", "step" => "requested_action"}
+    assert_raises(RobotOnRails::DeferredExecution) do
+      terminal.review(name: "execute_ruby", arguments: args, environment: "test", appetite: 2, risk: risk)
+    end
+    assert_equal args["code"], handoff.code
+  end
+
   def test_real_reline_prefill_preserves_multiline_ruby_and_waits_for_enter
     code = "first = 1\nfirst + 2"
     script = <<~RUBY

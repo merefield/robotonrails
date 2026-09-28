@@ -5,7 +5,7 @@ An English-first terminal assistant for your Rails application and its installed
 ```text
 $ bundle exec robotonrails
 
-RobotOnRails 0.1.19 · myapp / development
+RobotOnRails 0.1.21 · myapp / development
 rai › Which plugins extend User?
 rai › Show me five accounts affected by that workflow.
 
@@ -38,7 +38,7 @@ bundle exec robotonrails
 
 No initializer, database migration, or web route is installed. `require: false` keeps RobotOnRails out of the web application's normal boot path; the CLI loads it itself.
 
-Alternatively build and install the gem locally with `gem build robotonrails.gemspec` and `gem install ./robotonrails-0.1.19.gem`, then reference `gem "robotonrails", "~> 0.1", require: false` in the application's bundle. This project has not been published to RubyGems.
+Alternatively build and install the gem locally with `gem build robotonrails.gemspec` and `gem install ./robotonrails-0.1.21.gem`, then reference `gem "robotonrails", "~> 0.1", require: false` in the application's bundle. This project has not been published to RubyGems.
 
 ## Setup wizard
 
@@ -459,8 +459,20 @@ The helper never overwrites an existing `rai` method. If there is a conflict,
 use `RobotOnRails::Console.ask("request")` instead.
 
 Low-risk proposals execute directly using the current IRB or Pry binding, subject to
-risk appetite and the existing evidence/confidence policy. Proposals requiring
-review display their risk and explanation, then populate the next IRB or Pry
+risk appetite and the existing evidence/confidence policy. Supporting steps stay
+inside `rai`: eligible reads run automatically; steps needing review show an
+inline execute/edit/details/cancel prompt. Approved results return to the
+assistant, which continues the original request. Cancelling or an execution
+error stops the turn.
+
+For example, when asked to delete the highest-ID user, account and post checks
+are supporting steps. The actual deletion is the requested action. The assistant
+is instructed to target the exact inspected account with checks against changes.
+The step label never grants permission or changes the risk assessment.
+
+Requested changes always go to native review, even at a permissive risk appetite.
+Requested reads that need review also use native handoff. These final proposals
+display their risk and explanation, then populate the next IRB or Pry
 input with the exact Ruby. **Enter submits it as native console Ruby; edit it or
 clear/cancel the input as you normally would. There is no y/e/d menu or additional
 RobotOnRails confirmation for native submissions**, including RED/production.

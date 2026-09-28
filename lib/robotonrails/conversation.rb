@@ -24,7 +24,7 @@ module RobotOnRails
       @terminal.status("Thinking…")
       @config.max_rounds.times do
         raise LimitError, "Conversation reached its size limit. Use /reset to start fresh." if JSON.generate(events).bytesize > MAX_HISTORY_BYTES
-        response = @provider.complete(events: events, instructions: instructions, tools: Tools.definitions(inspect_only: @config.inspect_only, system_one: @config.system_one_enabled?))
+        response = @provider.complete(events: events, instructions: instructions, tools: Tools.definitions(inspect_only: @config.inspect_only, system_one: @config.system_one_enabled?, console: console?))
         @events << response
         response.fetch("usage", {}).each { |key, value| @usage[key] += value if @usage.key?(key) && value.is_a?(Numeric) }
         @terminal.assistant(@redactor.text(response["text"])) unless response["text"].to_s.empty?
@@ -64,6 +64,10 @@ module RobotOnRails
 
     private
 
+    def console?
+      @worker.inventory["execution_mode"] == "current Rails console process"
+    end
+
     def instructions
       <<~TEXT
         You are RobotOnRails, a conversational Rails console for an operator.
@@ -99,8 +103,8 @@ module RobotOnRails
         Explain affected records and side effects before proposing a change. Ask if the target is ambiguous.
         Never treat a rollback as protection from network, file, email or job side effects.
         Do not automatically repeat a mutation after errors or interruptions: its effects may already exist.
-        #{@worker.inventory["execution_mode"] == "current Rails console process" ?
-          "This is an ad-hoc Rails console helper. Return to Ruby after each request. The supplied execution binding persists until rai :reset. There is no worker process or forced timeout. puts/log output is local only; return a value when it should enter conversation history. Do not suggest /restart; the user controls the console." :
+        #{console? ?
+          console_instructions :
           "Worker local variables persist until /restart; conversation history is separate and may outlive the worker."}
         Do not alter source files, deploy, install packages, or run shell commands unless explicitly requested.
         Inspection-only mode: #{@config.inspect_only}.
@@ -108,10 +112,36 @@ module RobotOnRails
       TEXT
     end
 
+    def console_instructions
+      <<~TEXT
+        This is an ad-hoc Rails console helper. Keep supporting work inside the conversation
+        until the requested action is ready. Every execute_ruby call must set step to
+        supporting or requested_action. Compare the code's actual effect with the current user
+        request and prior results: supporting gathers prerequisites, checks targets or inspects
+        services; requested_action performs the requested operation or answers the requested
+        question. For 'delete the highest-ID user', selecting the candidate and checking posts
+        is supporting; deleting the verified account is requested_action. For 'count users',
+        User.count is requested_action. This distinction is not based on risk: neither a read
+        nor a write alone establishes the step. Explain each supporting step's purpose; do not
+        claim that it completes the requested action. The host confirms supporting steps when
+        needed and returns results so you can continue. Never combine a supporting check and
+        the requested mutation in one supporting call. Propose one step at a time. Once
+        prerequisites are known, propose a self-contained final command targeting the exact
+        inspected record, with guards against material changes; do not silently select a
+        different record at execution time. Requested changes are handed to the native prompt,
+        not executed by the helper. Eligible read-only answers can execute directly. Return to
+        Ruby when the request is answered or the requested action is handed off. The supplied
+        execution binding persists until rai :reset. There is no worker process or forced
+        timeout. puts/log output is local only; return a value when it should enter
+        conversation history. Do not suggest /restart; the user controls the console.
+      TEXT
+    end
+
     def dispatch(call)
       name, args = call.values_at("name", "arguments")
       Tools.validate!(name, args)
       if name == "execute_ruby"
+        raise Error, "Console Ruby requires step: supporting or requested_action. Nothing executed." if console? && !args.key?("step")
         return { "status" => "declined", "error" => "Ruby execution is disabled by --inspect-only." } if @config.inspect_only
       end
       reviewed = @terminal.review(name: name, arguments: args, environment: @config.environment, appetite: @config.risk_appetite, risk: @risk)

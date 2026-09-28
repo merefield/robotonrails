@@ -41,7 +41,7 @@ class ConsoleTest < Minitest::Test
         end
       end
       def command(code, id)
-        {"kind" => "assistant", "text" => "", "calls" => [{"id" => id, "name" => "execute_ruby", "arguments" => {"code" => code, "purpose" => "test"}}]}
+        {"kind" => "assistant", "text" => "", "calls" => [{"id" => id, "name" => "execute_ruby", "arguments" => {"code" => code, "purpose" => "test", "step" => "requested_action"}}]}
       end
       def done
         {"kind" => "assistant", "text" => "Done", "calls" => []}

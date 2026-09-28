@@ -78,14 +78,19 @@ module RobotOnRails
       def review(name:, arguments:, environment:, appetite:, risk: Risk.new, **)
         return super unless name == "execute_ruby"
         assessment = risk.assess(name, arguments)
-        automatic = risk.automatic?(assessment, appetite) && environment != "production" && interactive?
+        if arguments["step"] == "supporting"
+          say("Supporting step · results will return to rai")
+          return super(name: name, arguments: arguments, environment: environment, appetite: appetite, risk: risk, assessment: assessment)
+        end
+        eligible = risk.automatic?(assessment, appetite)
+        automatic = eligible && assessment.decision&.dig(:read_only) == "read_only_supported" && environment != "production" && interactive?
         unless automatic
-          explanation = risk.explain_review
+          explanation = risk.explain_review || assessment.reason
           queued = interactive? && @output.tty? && handoff_allowed&.call &&
             @handoff.available? && @handoff.queue(arguments.fetch("code"))
           say("")
           say("PRODUCTION") if environment == "production"
-          say(arguments.fetch("purpose"))
+          say("Requested action · #{arguments.fetch("purpose")}")
           unless queued
             ruby_code(arguments.fetch("code"))
           end

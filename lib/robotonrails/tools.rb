@@ -12,11 +12,15 @@ module RobotOnRails
       "execute_ruby" => ["Propose Ruby to execute inside Rails. Review and automatic execution follow the configured risk policy. Give a specific purpose; never retry a failed mutation without checking its outcome.", { "code" => "string", "purpose" => "string" }]
     }.freeze
 
-    def self.definitions(inspect_only: false, system_one: false)
+    def self.definitions(inspect_only: false, system_one: false, console: false)
       DEFINITIONS.filter_map do |name, (description, fields)|
         next if name == "risk_evidence"
         next if inspect_only && name == "execute_ruby"
         properties = fields.transform_values { |type| { type: type } }
+        if console && name == "execute_ruby"
+          properties["step"] = { type: "string", enum: %w[supporting requested_action],
+            description: "Relationship to the user's current request: supporting gathers prerequisites; requested_action performs the requested operation or answers the question. This does not determine risk or grant permission." }
+        end
         { name: name, description: description, parameters: {
           type: "object", properties: properties,
           required: properties.keys, additionalProperties: false
@@ -32,6 +36,10 @@ module RobotOnRails
       if name == "execute_ruby" && args.key?("risk")
         raise Error, "Invalid risk label." unless %w[green amber red].include?(args["risk"])
         keys = keys - ["risk"]
+      end
+      if name == "execute_ruby" && args.key?("step")
+        raise Error, "Invalid console step." unless %w[supporting requested_action].include?(args["step"])
+        keys = keys - ["step"]
       end
       raise Error, "Invalid arguments for #{name}." unless keys.sort == fields.keys.sort
       fields.each do |key, type|

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.21
+
+- Keep supporting console steps in the conversation, with inline approval/editing when risk requires review.
+- Hand off the requested action to the native prompt; only eligible read-only answers execute directly.
+- Distinguish supporting work from the requested action in console tool proposals and preserve results for continuation.
+
 ## 0.1.20
 
 - Support Pry’s active binding and editable Readline/Reline input handoff for `rai`, including nested console contexts.
