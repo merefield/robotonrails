@@ -24,6 +24,18 @@ class ConversationTest < Minitest::Test
     assert_equal "declined", @conversation.events.last.dig("result", "status")
   end
 
+  def test_native_console_handoff_stops_without_claiming_execution
+    def @terminal.review(**)
+      raise RobotOnRails::DeferredExecution, "Queued for native console; outcome unknown"
+    end
+    conversation(action).ask("Prepare a command")
+    assert_empty @worker.calls
+    assert_equal 1, @provider.requests.length
+    assert_equal "deferred", @conversation.events.last.dig("result", "status")
+    assert_includes @conversation.events.last.dig("result", "execution"), "unknown"
+    refute @terminal.messages.any? { |text| text.include?("Turn stopped") }
+  end
+
   def test_approved_execution_returns_result_to_provider
     @terminal.approve_result = true
     conversation(action).ask("Count widgets")

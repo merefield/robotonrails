@@ -31,6 +31,7 @@ module RobotOnRails
         calls = response.fetch("calls")
         return if calls.empty?
         stopped = false
+        deferred = false
         calls.each do |call|
           if stopped
             result = { "status" => "cancelled", "error" => "Earlier action stopped this turn; no execution." }
@@ -42,12 +43,13 @@ module RobotOnRails
             else
               dispatch(call)
             end
-            stopped = %w[declined stopped].include?(result["status"]) || (call["name"] == "execute_ruby" && result["status"] != "ok") || repeated[signature] > 2
+            stopped = %w[declined stopped deferred].include?(result["status"]) || (call["name"] == "execute_ruby" && result["status"] != "ok") || repeated[signature] > 2
           end
+          deferred ||= result["status"] == "deferred"
           @events << { "kind" => "tool", "id" => call.fetch("id"), "result" => @redactor.call(result) }
         end
         if stopped
-          @terminal.say("Turn stopped. Review the result before requesting another action.")
+          @terminal.say("Turn stopped. Review the result before requesting another action.") unless deferred
           return
         end
       end
@@ -97,7 +99,9 @@ module RobotOnRails
         Explain affected records and side effects before proposing a change. Ask if the target is ambiguous.
         Never treat a rollback as protection from network, file, email or job side effects.
         Do not automatically repeat a mutation after errors or interruptions: its effects may already exist.
-        Worker local variables persist until /restart; conversation history is separate and may outlive the worker.
+        #{@worker.inventory["execution_mode"] == "current Rails console process" ?
+          "This is an ad-hoc Rails console helper. Return to Ruby after each request. The supplied execution binding persists until rai :reset. There is no worker process or forced timeout. puts/log output is local only; return a value when it should enter conversation history. Do not suggest /restart; the user controls the console." :
+          "Worker local variables persist until /restart; conversation history is separate and may outlive the worker."}
         Do not alter source files, deploy, install packages, or run shell commands unless explicitly requested.
         Inspection-only mode: #{@config.inspect_only}.
         Runtime inventory: #{JSON.generate(@redactor.call(@worker.inventory))}
@@ -121,6 +125,8 @@ module RobotOnRails
       @audit&.record(name: name, arguments: args, result: result)
       @terminal.result(result) if name == "execute_ruby" || result["status"] != "ok"
       result
+    rescue DeferredExecution => e
+      { "status" => "deferred", "error" => e.message, "execution" => "not executed by helper; native console outcome unknown" }
     rescue WorkerError => e
       @terminal.say(@redactor.text(e.message))
       { "status" => "stopped", "error" => @redactor.text(e.message) }

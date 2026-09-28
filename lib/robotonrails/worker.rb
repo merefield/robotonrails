@@ -18,13 +18,6 @@ module RobotOnRails
     MAX_REQUEST = 64 * 1024
     MAX_RESPONSE = 48 * 1024
 
-    class ExecutionScope
-      # A fresh method scope keeps user variables out of the worker's dispatch frame.
-      def session_binding
-        binding
-      end
-    end
-
     def self.run
       protocol = IO.new(3, "w")
       protocol.sync = true
@@ -34,25 +27,14 @@ module RobotOnRails
       require File.join(root, "config/environment.rb")
       raise Error, "Rails application failed to load." unless defined?(Rails) && Rails.application
       Rails.application.eager_load!
-      discovery = Discovery.new(root)
-      context = ExecutionScope.new.session_binding
-      send_result(protocol, { "status" => "ready", "inventory" => discovery.inventory })
+      runtime = Runtime.new(root)
+      send_result(protocol, { "status" => "ready", "inventory" => runtime.discovery.inventory })
       while (line = STDIN.gets(MAX_REQUEST + 1))
         raise Error, "Request too large." if line.bytesize > MAX_REQUEST || !line.end_with?("\n")
         request = JSON.parse(line)
         name, args = request.values_at("name", "arguments")
         begin
-          Tools.validate!(name, args)
-          value = if name == "risk_evidence"
-            MethodEvidence.new(discovery.roots).collect(args.fetch("code"))
-          elsif name == "execute_ruby"
-            Rails.application.executor.wrap do
-              result = context.eval(args.fetch("code"), "(robotonrails)", 1)
-              { "value" => result.inspect[0, 12_000] }
-            end
-          else
-            Rails.application.executor.wrap { discovery.call(name, args) }
-          end
+          value = runtime.call(name, args)
           send_result(protocol, { "status" => "ok", "result" => value })
         rescue StandardError, SyntaxError => e
           send_result(protocol, { "status" => "error", "error" => "#{e.class}: #{e.message}"[0, 4000],

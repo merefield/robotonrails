@@ -92,11 +92,11 @@ module RobotOnRails
       @input.gets&.chomp
     end
 
-    def review(name:, arguments:, environment:, appetite:, risk: Risk.new)
+    def review(name:, arguments:, environment:, appetite:, risk: Risk.new, assessment: nil)
       args = arguments.dup
       edited = false
       loop do
-        assessment = risk.assess(name, args)
+        assessment ||= risk.assess(name, args)
         # Piped input cannot approve or auto-execute Ruby.
         automatic = risk.automatic?(assessment, appetite) && !(name == "execute_ruby" && environment == "production") && !edited && (name != "execute_ruby" || @input.tty?)
         if automatic && name != "execute_ruby"
@@ -164,6 +164,7 @@ module RobotOnRails
             args.delete("risk") # The original LLM label does not describe an edited command.
           end
           edited = true
+          assessment = nil
           next
         end
         return nil unless choice == "y"

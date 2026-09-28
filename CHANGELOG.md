@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.1.19
+
+- Add opt-in `rai` Rails console helper with session history and current/explicit binding support.
+- Run eligible reads in-process; hand review-required Ruby to editable native IRB/Reline input without y/e/d prompts.
+- Record native handoffs as deferred with unknown outcome; preserve existing standalone CLI review rules.
+- Share tool dispatch between worker and console, with explicit in-process interruption/output limitations.
+
+## Previous fixes
 
 - Continue runtime evidence collection when a loaded gem advertises a missing or inaccessible source directory, reporting the unavailable source explicitly. Fixes Ruby 3.3 CI with a missing default Bundler directory.
 

@@ -5,7 +5,7 @@ An English-first terminal assistant for your Rails application and its installed
 ```text
 $ bundle exec robotonrails
 
-RobotOnRails 0.1.18 · myapp / development
+RobotOnRails 0.1.19 · myapp / development
 you> Which plugins extend User?
 you> Show me five accounts affected by that workflow.
 
@@ -38,7 +38,7 @@ bundle exec robotonrails
 
 No initializer, database migration, or web route is installed. `require: false` keeps RobotOnRails out of the web application's normal boot path; the CLI loads it itself.
 
-Alternatively build and install the gem locally with `gem build robotonrails.gemspec` and `gem install ./robotonrails-0.1.18.gem`, then reference `gem "robotonrails", "~> 0.1", require: false` in the application's bundle. This project has not been published to RubyGems.
+Alternatively build and install the gem locally with `gem build robotonrails.gemspec` and `gem install ./robotonrails-0.1.19.gem`, then reference `gem "robotonrails", "~> 0.1", require: false` in the application's bundle. This project has not been published to RubyGems.
 
 ## Setup wizard
 
@@ -428,3 +428,66 @@ environment variables for overrides. The gem and executable are `robotonrails`;
 the Ruby namespace is `RobotOnRails`. Run `robotonrails doctor` to check your setup.
 
 MIT licensed. See [LICENSE](LICENSE) and [COPYRIGHT.txt](COPYRIGHT.txt).
+
+## Ad-hoc Rails console helper: `rai`
+
+Load the opt-in integration in your development Gemfile:
+
+```ruby
+group :development do
+  gem "robotonrails", path: File.expand_path("~/projects/robotonrails"), require: "robotonrails/console"
+end
+```
+
+Restart `bin/rails console`, then use ordinary Ruby between requests:
+
+```ruby
+rai "how many topics?"
+rai "which user wrote the most?"
+rai "append a 1 to that user's username"
+rai :reset
+```
+
+In an already running console with the gem available, enable it with:
+
+```ruby
+require "robotonrails/console"
+RobotOnRails::Console.install!
+```
+
+The helper never overwrites an existing `rai` method. If there is a conflict,
+use `RobotOnRails::Console.ask("request")` instead.
+
+Low-risk proposals execute directly using the current IRB binding, subject to
+risk appetite and the existing evidence/confidence policy. Proposals requiring
+review display their risk and explanation, then populate the next IRB/Reline
+input with the exact Ruby. **Enter submits it as native console Ruby; edit it or
+clear/cancel the input as you normally would. There is no y/e/d menu or additional
+RobotOnRails confirmation for native submissions**, including RED/production.
+Edited native commands are not reassessed by the helper. Nothing is executed by
+prefilling input. This handoff is recorded as proposed, with unknown outcome;
+the eventual native result is not automatically added to the assistant's history.
+
+Input prefill requires IRB with Reline, an interactive terminal, and the current
+console binding. Otherwise the proposal is displayed for manual use and is not
+executed. The standalone `robotonrails` CLI keeps its existing approval prompts.
+
+Successive `rai` calls retain user requests, commands and tool results. Use an
+explicit binding when appropriate:
+
+```ruby
+draft = User.new(username: "example")
+rai "explain this unsaved draft", context: binding
+```
+
+A binding different from the active IRB workspace disables native input prefill
+because the same Ruby could mean something different there. `rai :reset` clears
+conversation history and the helper's binding; it does not undo application
+changes or erase the console's local variables. Calls return nil to keep internal
+session objects out of IRB's inspection output.
+
+Execution shares the Rails console process: there is no subprocess isolation or
+forced worker timeout. Interrupts return control where Ruby permits interruption;
+changes may already have occurred. Output from puts, warnings and logs remains
+on the console; returned values enter the redacted tool history. No local variable
+values are automatically enumerated or sent; proposed Ruby must access them.

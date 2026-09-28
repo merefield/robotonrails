@@ -6,6 +6,7 @@ module RobotOnRails
   class Error < StandardError; end
   class WorkerError < Error; end
   class LimitError < Error; end
+  class DeferredExecution < Error; end
 end
 
 require_relative "robotonrails/settings_store"
@@ -17,6 +18,7 @@ require_relative "robotonrails/risk"
 require_relative "robotonrails/source_index"
 require_relative "robotonrails/discovery"
 require_relative "robotonrails/method_evidence"
+require_relative "robotonrails/runtime"
 require_relative "robotonrails/worker_client"
 require_relative "robotonrails/providers/openai"
 require_relative "robotonrails/providers/system_one"
